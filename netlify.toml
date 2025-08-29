@@ -1,0 +1,14 @@
+# netlify.toml
+[build]
+  command = """
+    corepack enable
+    yarn set version stable
+    yarn --version
+    yarn workspaces focus website --all
+    yarn workspace website build
+  """
+  publish = "website/public"
+
+[build.environment]
+  NODE_VERSION = "18"
+  # Mapbox トークンはダッシュボードで設定すること（下に書かないこと）
