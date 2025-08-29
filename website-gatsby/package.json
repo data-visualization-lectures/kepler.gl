@@ -3,9 +3,7 @@
   "version": "0.0.0",
   "description": "A website for Ocular, built with Ocular (Gatsby version)",
   "license": "MIT",
-  "keywords": [
-    "ocular"
-  ],
+  "keywords": ["ocular"],
   "main": "index.js",
   "scripts": {
     "start": "yarn clean && yarn develop",
@@ -19,14 +17,15 @@
   "dependencies": {
     "babel-plugin-version-inline": "^1.0.0",
     "marked": "^0.7.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
     "react-map-gl": "^5.0.0",
     "react-redux": "^8.0.5",
     "react-swipeable-views": "^0.13.3",
     "react-waypoint": "^9.0.2",
     "redux": "^4.2.1",
-    "styled-components": "^4.2.0"
+    "styled-components": "^4.2.0",
+    "ocular-dev-tools": "^1.0.0"
   },
   "devDependencies": {
     "gatsby": "^2.18.0",
