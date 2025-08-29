@@ -6,9 +6,23 @@ const resolve = require('path').resolve;
 const DOCS = require('../docs/table-of-contents.json');
 const DEPENDENCIES = require('./package.json').dependencies;
 // eslint-disable-next-line import/no-extraneous-dependencies
-const ALIASES = require('ocular-dev-tools/config/ocular.config')({
-  root: resolve(__dirname, '..')
-}).aliases;
+
+function loadOcularAliases() {
+  // ocular-dev-tools があれば使う。なければ空オブジェクトで続行
+  const roots = {root: resolve(__dirname, '..')};
+  try {
+    return require('ocular-dev-tools/config/ocular.config')(roots).aliases;
+  } catch (_) {
+    try {
+      // 名前が変わっている場合のフォールバック（存在すれば）
+      return require('@visgl/ocular-dev-tools/config/ocular.config')(roots).aliases;
+    } catch (__) {
+      console.warn('[gatsby-config] ocular-dev-tools not found. Proceeding without extra aliases.');
+      return {};
+    }
+  }
+}
+const ALIASES = loadOcularAliases();
 
 // When duplicating example dependencies in website, autogenerate
 // aliases to ensure the website version is picked up
