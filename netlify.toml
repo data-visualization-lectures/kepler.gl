@@ -1,3 +1,3 @@
 [build]
-  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && cd website-gatsby && test -f yarn.lock || touch yarn.lock && YARN_IGNORE_PATH=1 yarn install && YARN_IGNORE_PATH=1 yarn build --verbose"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && cd website-gatsby && test -f yarn.lock || touch yarn.lock && YARN_IGNORE_PATH=1 YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && YARN_IGNORE_PATH=1 yarn build --verbose"
   publish = "website-gatsby/public"
