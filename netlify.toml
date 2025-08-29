@@ -3,7 +3,3 @@
 [build]
   command = "corepack enable && corepack prepare yarn@4.4.0 --activate && yarn --version && yarn dlx puppeteer && yarn install --immutable && yarn bootstrap && cd website && yarn install --immutable && yarn build"
   publish = "website/public"
-
-[build.environment]
-  NODE_VERSION = "18.18.2"
-  # MapboxAccessToken は Netlify の環境変数(UI)に設定
