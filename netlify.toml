@@ -1,11 +1,16 @@
 [build]
 base = "website-gatsby"
 publish = "public"
-command = "yarn install --frozen-lockfile && yarn build --verbose"
+functions = "netlify/functions"
+# Yarn 4 を Corepack でアクティブ化し、immutable縛りを外してインストール
+command = """
+corepack enable
+corepack prepare yarn@4.4.0 --activate
+node -v
+yarn -v
+yarn install
+yarn build --verbose
+"""
 
 [build.environment]
 NODE_VERSION = "20"
-
-# (Functions を使うなら)
-[functions]
-directory = "netlify/functions"
