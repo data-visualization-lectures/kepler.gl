@@ -1,13 +1,7 @@
-# netlify.toml（安定重視の確定版）
 [build]
-  # 依存解決の最小化：root を解決 → website-gatsby だけ解決 → build
-  # puppeteer は使わない（CIで失敗源になりやすい）
-  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn --version && yarn install --immutable && cd website-gatsby && yarn install --immutable && yarn build"
-  publish = "website-gatsby/public"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && yarn install --immutable && cd website && yarn install --immutable && yarn build"
+  publish = "website/public"
 
 [build.environment]
-  # メモリ不足で落ちるのを避ける（Gatsbyでありがち）
-  NODE_OPTIONS = "--max_old_space_size=4096"
-
-[[plugins]]
-  package = "@netlify/plugin-gatsby"
+  NODE_VERSION = "18"
+  # MapboxAccessToken は Netlify UI で設定
