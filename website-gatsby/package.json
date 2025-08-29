@@ -31,6 +31,8 @@
     "gatsby": "^2.18.0",
     "gatsby-plugin-no-sourcemaps": "^2.0.2",
     "gatsby-theme-ocular": "^1.1.0-alpha.5",
-    "gh-pages": "^2.1.0"
+    "gh-pages": "^2.1.0",
+    "ocular-dev-tools": "*"
+
   }
 }
