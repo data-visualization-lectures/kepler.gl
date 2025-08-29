@@ -1,10 +1,6 @@
-# netlify.toml（リポジトリ直下）
 [build]
-  base    = "website-gatsby"
-  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && yarn install --immutable && yarn build --verbose"
-  publish = "public"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && yarn install --immutable && cd website-gatsby && yarn build --verbose"
+  publish = "website-gatsby/public"
 
 [build.environment]
   NODE_OPTIONS = "--max_old_space_size=4096"
-  NETLIFY_BUILD_DEBUG = "true"   # 失敗時に詳細ログを出す
-  # MapboxAccessToken は Netlify の UI で設定
