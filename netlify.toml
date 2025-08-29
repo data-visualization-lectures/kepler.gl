@@ -1,9 +1,9 @@
-# netlify.toml（リポジトリ直下）
+# netlify.toml  （リポジトリ直下）
 
 [build]
-  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && yarn --version && yarn install --immutable && yarn bootstrap && yarn --cwd website install --immutable && yarn --cwd website build && OUT='' && if [ -d website/public ]; then OUT=website/public; elif [ -d website/dist ]; then OUT=website/dist; elif [ -d website/build ]; then OUT=website/build; else echo 'No known output dir under website/'; exit 2; fi && echo \"Detected publish dir: $OUT\" && rm -rf netlify_publish && mkdir -p netlify_publish && cp -R \"$OUT\"/. netlify_publish/"
-  publish = "netlify_publish"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && yarn --version && yarn dlx puppeteer && yarn install --immutable && yarn bootstrap && cd website && yarn install --immutable && yarn build"
+  publish = "website/public"
 
 [build.environment]
   NODE_VERSION = "18.18.2"
-  # MapboxAccessToken は Netlify の環境変数に必ず設定（UI側）。
+  # MapboxAccessToken は Netlify の環境変数(UI)に設定
