@@ -1,16 +1,9 @@
+# netlify.toml（リポジトリ直下）
+
 [build]
-  command = """
-    set -e
-    corepack enable
-    # ルートの依存解決（モノレポ内パッケージ用）
-    yarn install --immutable
-    # website はワークスペースではないので、個別に依存を入れてからビルド
-    cd website
-    yarn install --immutable
-    yarn build
-  """
-  publish = "website/public"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && yarn --version && yarn install --immutable && yarn bootstrap && yarn --cwd website install --immutable && yarn --cwd website build && OUT='' && if [ -d website/public ]; then OUT=website/public; elif [ -d website/dist ]; then OUT=website/dist; elif [ -d website/build ]; then OUT=website/build; else echo 'No known output dir under website/'; exit 2; fi && echo \"Detected publish dir: $OUT\" && rm -rf netlify_publish && mkdir -p netlify_publish && cp -R \"$OUT\"/. netlify_publish/"
+  publish = "netlify_publish"
 
 [build.environment]
-  NODE_VERSION = "18"
-  # Mapbox トークンはダッシュボードで設定すること（下に書かないこと）
+  NODE_VERSION = "18.18.2"
+  # MapboxAccessToken は Netlify の環境変数に必ず設定（UI側）。
