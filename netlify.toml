@@ -1,6 +1,3 @@
 [build]
-  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && yarn install --immutable && cd website-gatsby && yarn build --verbose"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && test -f yarn.lock || (echo 'NO yarn.lock at repo root' && exit 3); YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install || (echo 'ROOT INSTALL FAILED' && exit 11); cd website-gatsby && yarn build --verbose || (echo 'GATSBY BUILD FAILED' && exit 12)"
   publish = "website-gatsby/public"
-
-[build.environment]
-  NODE_OPTIONS = "--max_old_space_size=4096"
