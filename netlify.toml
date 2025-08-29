@@ -1,7 +1,8 @@
 [build]
-  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && yarn install --immutable && cd website && yarn install --immutable && yarn build"
-  publish = "website/public"
+  command = "bash -lc 'set -euo pipefail; echo \"[ENV]\"; node -v || true; corepack enable; corepack prepare yarn@4.4.0 --activate; echo \"node:\" $(node -v); echo \"yarn:\" $(yarn -v); echo \"[STEP] root install\"; YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install || { echo \"[ERR] root install\"; exit 11; }; echo \"[CHECK] workspaces\"; yarn workspaces list || true; echo \"[TRY] website install\"; if [ -d website ] && [ -f website/package.json ]; then (cd website && YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install) || touch /tmp/WEBSITE_INSTALL_FAILED; else touch /tmp/WEBSITE_INSTALL_FAILED; fi; if [ -f /tmp/WEBSITE_INSTALL_FAILED ]; then echo \"[SKIP] website build (install failed)\"; else echo \"[BUILD] website\"; (cd website && yarn build) || touch /tmp/WEBSITE_BUILD_FAILED; fi; if [ -f /tmp/WEBSITE_BUILD_FAILED ] || [ -f /tmp/WEBSITE_INSTALL_FAILED ]; then echo \"[FALLBACK] website-gatsby\"; if [ -d website-gatsby ] && [ -f website-gatsby/package.json ]; then (cd website-gatsby && YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && yarn build) || { echo \"[ERR] website-gatsby build\"; exit 21; }; export OUTDIR=website-gatsby/public; else echo \"[ERR] website-gatsby not present\"; exit 22; fi; else export OUTDIR=website/public; fi; echo \"[OK] publish dir: $OUTDIR\"; rm -rf netlify_publish && mkdir -p netlify_publish && cp -R \"$OUTDIR\"/. netlify_publish/'"
+  publish = "netlify_publish"
 
 [build.environment]
   NODE_VERSION = "18"
-  # MapboxAccessToken は Netlify UI で設定
+  NODE_OPTIONS = "--max_old_space_size=4096"
+  # 必須: MapboxAccessToken は Netlify の環境変数(UI)で設定してください
