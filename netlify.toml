@@ -1,5 +1,8 @@
-# netlify.toml  （リポジトリ直下）
-
 [build]
-  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && yarn --version && yarn dlx puppeteer && yarn install --immutable && yarn bootstrap && cd website && yarn install --immutable && yarn build"
-  publish = "website/public"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn --version && yarn dlx puppeteer && yarn install --immutable && yarn bootstrap && cd website-gatsby && yarn install --immutable && yarn build"
+  publish = "website-gatsby/public"
+
+[build.environment]
+  # Nodeは .nvmrc(18.18.2) を使う。UI側で NODE_VERSION を指定しているなら外す。
+  PUPPETEER_CACHE_DIR = "/opt/build/cache/puppeteer"
+  # 必須: Netlify の UIで MapboxAccessToken を設定
