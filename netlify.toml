@@ -1,11 +1,13 @@
-# netlify.toml
 [build]
   command = """
+    set -e
     corepack enable
-    yarn set version stable
-    yarn --version
-    yarn workspaces focus website --all
-    yarn workspace website build
+    # ルートの依存解決（モノレポ内パッケージ用）
+    yarn install --immutable
+    # website はワークスペースではないので、個別に依存を入れてからビルド
+    cd website
+    yarn install --immutable
+    yarn build
   """
   publish = "website/public"
 
