@@ -1,10 +1,11 @@
-# netlify.toml（最終・Netlify内で完結）
-
+# netlify.toml（リポジトリ直下）
 [build]
-  command = "bash -lc 'set -euo pipefail; corepack enable; corepack prepare yarn@4.4.0 --activate; echo node:$(node -v) yarn:$(yarn -v); YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install; yarn bootstrap; cd website-gatsby; YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install; yarn build --verbose'"
-  publish = "website-gatsby/public"
+  base    = "website-gatsby"
+  command = "corepack enable && corepack prepare yarn@4.4.0 --activate && node -v && yarn -v && yarn install --immutable && yarn build --verbose"
+  publish = "public"
 
 [build.environment]
   NODE_VERSION = "18"
   NODE_OPTIONS = "--max_old_space_size=4096"
-  # MapboxAccessToken は Netlify の UI（Environment variables）で必ず設定
+  NETLIFY_BUILD_DEBUG = "true"   # 失敗時に詳細ログを出す
+  # MapboxAccessToken は Netlify の UI で設定
