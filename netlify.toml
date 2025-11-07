@@ -5,3 +5,8 @@ publish = "dist"
 command = "echo 'Use local build: netlify deploy --dir=examples/demo-app/dist'"
 
 # Netlify 側でのビルド／依存インストールは行わないため、環境変数指定は不要
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
