@@ -31,7 +31,7 @@ export const exportMapToHTML = (options, version = KEPLER_GL_VERSION) => {
         <link href="https://unpkg.com/maplibre-gl@^3/dist/maplibre-gl.css" rel="stylesheet">
 
         <!-— facebook open graph tags -->
-        <meta property="og:url" content="http://kepler.gl/" />
+        <meta property="og:url" content="https://kepler.gl/" />
         <meta property="og:title" content="Large-scale WebGL-powered Geospatial Data Visualization Tool" />
         <meta property="og:description" content="Kepler.gl is a powerful web-based geospatial data analysis tool. Built on a high performance rendering engine and designed for large-scale data sets." />
         <meta property="og:site_name" content="kepler.gl" />

@@ -18,7 +18,7 @@ export const MAP_CONFIG_URL = `${DATA_URL}samples.json?nocache=${new Date().getT
  * because it belongs to the demo app
  * @type {string}
  */
-export const KEPLER_GL_WEBSITE = 'http://kepler.gl/';
+export const KEPLER_GL_WEBSITE = 'https://kepler.gl/';
 
 export const QUERY_TYPES = keyMirror({
   file: null,
