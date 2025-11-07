@@ -115,7 +115,7 @@ yarn start
 
 An demo app will be served at `http://localhost:8080/`
 
-This is the demo app we hosted on [http://kepler.gl/#/demo][demo-app]. By default, it serves non-minified source code inside the src directory.
+This is the demo app we hosted on [https://kepler.gl/#/demo][demo-app]. By default, it serves non-minified source code inside the src directory.
 
 #### Develop with deck.gl
 
@@ -417,7 +417,7 @@ The integration with Gitbook allows to update the documentation in two different
 
 For both scenarios, changes will be propagated from one system to the other and vice versa. When updating Gitbook, a new git commit will be push to the Kepler.gl master branch.
 
-[demo-app]: http://kepler.gl/#/demo
+[demo-app]: https://kepler.gl/#/demo
 [documentationjs]: https://documentation.js.org/
 [eslint]: https://eslint.org/
 [enzyme]: https://airbnb.io/enzyme/

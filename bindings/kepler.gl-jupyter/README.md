@@ -1,6 +1,6 @@
 # kepler.gl for Jupyter
 
-This is the [kepler.gl](http://kepler.gl) jupyter widget, an advanced geospatial visualization tool, to render large-scale interactive maps in Jupyter Notebook.
+This is the [kepler.gl](https://kepler.gl) jupyter widget, an advanced geospatial visualization tool, to render large-scale interactive maps in Jupyter Notebook.
 
 ![Kepler.gl for Jupyter][jupyter_widget]
 

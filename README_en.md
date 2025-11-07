@@ -27,7 +27,7 @@
 </h1>
 <h3></h3>
 
-[<img width="120" alt="Kepler.gl" src="https://d1a3f4spazzrp4.cloudfront.net/kepler.gl/website/icons/kepler.gl-logo.png">](http://kepler.gl)
+[<img width="120" alt="Kepler.gl" src="https://d1a3f4spazzrp4.cloudfront.net/kepler.gl/website/icons/kepler.gl-logo.png">](https://kepler.gl)
 
 [<img width="600" alt="Kepler.gl Demo" src="./screenshots/screenshot.png">](https://kepler.gl/demo)
 
@@ -517,7 +517,7 @@ this.props.dispatch(
 Read more about [addDataToMap](./docs/api-reference/actions/actions.md#adddatatomap) and [Saving and loading maps with schema manager][saving-loading-w-schema].
 
 [contributing]: contributing/README.md
-[demo-app]: http://kepler.gl/#/demo
+[demo-app]: https://kepler.gl/#/demo
 [github]: https://github.com/keplergl/kepler.gl
 [github-pr]: https://help.github.com/articles/creating-a-pull-request/
 [mapbox]: https://www.mapbox.com
@@ -527,8 +527,8 @@ Read more about [addDataToMap](./docs/api-reference/actions/actions.md#adddatato
 [react-palm]: https://github.com/btford/react-palm
 [roadmap]: https://github.com/keplergl/kepler.gl/wiki/Kepler.gl-2019-Roadmap
 [stack]: https://stackoverflow.com/questions/tagged/kepler.gl
-[web]: http://www.kepler.gl/
-[vis-academy]: http://vis.academy/#/kepler.gl/
+[web]: https://kepler.gl/
+[vis-academy]: https://vis.academy/#/kepler.gl/
 [user-guide]: docs/user-guides/README.md
 [user-guide-jupyter]: docs/keplergl-jupyter/README.md
 [api-reference]: docs/api-reference/README.md
