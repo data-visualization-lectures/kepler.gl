@@ -272,7 +272,7 @@ test('#GridLayer -> renderLayer', t => {
           onSetLayerDomain: spyLayerCallbacks
         }
       },
-      assert: (deckLayers, layer, result) => {
+      assert: (deckLayers, layer) => {
         t.deepEqual(
           deckLayers.map(l => l.id),
           ['test_layer_1', 'test_layer_1-grid-cell'],
@@ -328,9 +328,14 @@ test('#GridLayer -> renderLayer', t => {
             `should pass correct data:${i} to grid cell layer`
           );
         });
+
+        const expectedLayerDomain = {
+          domain: [1, 2],
+          aggregatedBins: {1: {i: 1, value: 2, counts: 2}, 2: {i: 2, value: 1, counts: 1}}
+        };
         t.deepEqual(
           spyLayerCallbacks.args[0][0],
-          [1, 2],
+          expectedLayerDomain,
           'should call onSetLayerDomain with correct domain'
         );
 
@@ -351,18 +356,8 @@ test('#GridLayer -> renderLayer', t => {
           instancePositions.value.slice(0, 12),
           // position of each bin
           [
-            -122.59661271087748,
-            37.743177277521255,
-            0,
-            -122.14283099317691,
-            37.38384344551697,
-            0,
-            -122.3697218520272,
-            37.743177277521255,
-            0,
-            0,
-            0,
-            0
+            -122.59661271087748, 37.743177277521255, 0, -122.14283099317691, 37.38384344551697, 0,
+            -122.3697218520272, 37.743177277521255, 0, 0, 0, 0
           ],
           'should create correct attribute.instanceFillColors'
         );
@@ -417,7 +412,7 @@ test('#GridLayer -> renderLayer', t => {
           onSetLayerDomain: spyLayerCallbacks
         }
       },
-      assert: (deckLayers, layer, result) => {
+      assert: deckLayers => {
         t.deepEqual(
           deckLayers.map(l => l.id),
           ['test_layer_2', 'test_layer_2-grid-cell'],
@@ -453,10 +448,13 @@ test('#GridLayer -> renderLayer', t => {
           {i: 2, value: 1, counts: 1},
           {i: 1, value: 2, counts: 2}
         ];
-
+        const expectedLayerDomain = {
+          domain: [7.13, 11],
+          aggregatedBins: {1: {i: 1, value: 7.13, counts: 2}, 2: {i: 2, value: 11, counts: 1}}
+        };
         t.deepEqual(
           spyLayerCallbacks.args[1][0],
-          [7.13, 11],
+          expectedLayerDomain,
           'should call onSetLayerDomain with correct domain'
         );
         t.deepEqual(

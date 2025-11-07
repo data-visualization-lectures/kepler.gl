@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-const {resolve, join} = require('path');
+const {resolve} = require('path');
 const webpack = require('webpack');
 
 const KeplerPackage = require('../package');
@@ -20,9 +20,10 @@ const BABEL_CONFIG = {
   presets: ['@babel/preset-env', '@babel/preset-react', '@babel/preset-typescript'],
   plugins: [
     ['@babel/plugin-transform-typescript', {isTSX: true, allowDeclareFields: true}],
-    '@babel/plugin-proposal-class-properties',
-    '@babel/plugin-proposal-export-namespace-from',
-    '@babel/plugin-proposal-optional-chaining',
+    '@babel/plugin-transform-class-properties',
+    '@babel/plugin-transform-optional-chaining',
+    '@babel/plugin-transform-logical-assignment-operators',
+    '@babel/plugin-transform-nullish-coalescing-operator',
     [
       'search-and-replace',
       {
@@ -48,63 +49,93 @@ const COMMON_CONFIG = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
     modules: ['node_modules', SRC_DIR],
-    alias: RESOLVE_ALIASES
+    alias: {
+      ...RESOLVE_ALIASES
+    }
   },
 
   module: {
     rules: [
       {
-        // Compile ES2015 using bable
-        test: /\.(js|jsx|ts|tsx)$/,
+        // Compile ES2015 using babel
+        test: /\.(js|jsx|ts|tsx|mjs)$/,
         loader: 'babel-loader',
         options: BABEL_CONFIG,
-        exclude: [/node_modules/]
+        include: [
+          resolve(__dirname, './src'),
+          resolve(LIB_DIR, './examples'),
+          resolve(LIB_DIR, './src'),
+          /node_modules\/@monaco-editor/,
+          /node_modules\/@radix-ui/
+        ],
+        exclude: [/node_modules\/(?!(@monaco-editor|@radix-ui))/]
+      },
+      // Add css loader for ai-assistant
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
       },
       {
         test: /\.(eot|svg|ico|ttf|woff|woff2|gif|jpe?g|png)$/,
-        loader: 'url-loader'
+        type: 'asset/resource'
       },
       {
         test: /\.(svg|ico|gif|jpe?g|png)$/,
-        loader: 'file-loader?name=[name].[ext]'
+        type: 'asset/inline'
       },
       // for compiling apache-arrow ESM module
       {
         test: /\.mjs$/,
-        include: /node_modules\/apache-arrow/,
+        include: /node_modules[\\/]apache-arrow/,
         type: 'javascript/auto'
       },
+      {
+        test: /\.js$/,
+        loader: require.resolve('@open-wc/webpack-import-meta-loader'),
+        include: [/node_modules\/parquet-wasm/]
+      },
       // for compiling @probe.gl, website build started to fail (March, 2024)
-      // netlify biulder complains loader not found for these modules (April, 2024)
+      // netlify builder complains loader not found for these modules (April, 2024)
       {
         test: /\.(js)$/,
         loader: 'babel-loader',
         options: BABEL_CONFIG,
-        include: [/node_modules\/@probe.gl/, /node_modules\/@loaders.gl/, /node_modules\/@math.gl/]
+        include: [
+          /node_modules[\\/]@probe.gl/,
+          /node_modules[\\/]@loaders.gl/,
+          /node_modules[\\/]@math.gl/,
+          /node_modules[\\/]@geoarrow/
+        ]
+      },
+      {
+        test: /\.m?js$/,
+        include: [
+          /node_modules\/@duckdb\/duckdb-wasm/,
+          /node_modules\/@radix-ui/,
+          /node_modules\/@monaco-editor\/react/
+        ],
+        type: 'javascript/auto'
       }
     ]
   },
 
-  node: {
-    fs: 'empty'
-  },
-
-  // to support browser history api and remove the '#' sign
   devServer: {
     historyApiFallback: true
+    // Add new options if needed
   },
 
   // Optional: Enables reading mapbox token from environment variable
   plugins: [
     // Provide default values to suppress warnings
-    new webpack.EnvironmentPlugin(WEBPACK_ENV_VARIABLES)
+    new webpack.EnvironmentPlugin(WEBPACK_ENV_VARIABLES),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production')
+    })
   ],
 
-  // Required to avoid deck.gl undefined module when code is minified
+  // Update optimization settings
   optimization: {
-    concatenateModules: false,
-    providedExports: false,
-    usedExports: false
+    // Webpack 5 has better defaults for tree-shaking and module concatenation
   }
 };
 
@@ -114,7 +145,7 @@ const addDevConfig = config => {
     test: /\.js$/,
     use: ['source-map-loader'],
     enforce: 'pre',
-    exclude: [/node_modules\/react-palm/, /node_modules\/react-data-grid/]
+    exclude: [/node_modules[\\/]react-palm/, /node_modules[\\/]react-data-grid/]
   });
 
   return Object.assign(config, {
@@ -131,7 +162,8 @@ const addProdConfig = config => {
   return Object.assign(config, {
     output: {
       path: resolve(__dirname, './dist'),
-      filename: 'bundle.js'
+      filename: 'bundle.js',
+      publicPath: '/'
     }
   });
 };

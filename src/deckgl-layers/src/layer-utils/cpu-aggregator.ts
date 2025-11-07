@@ -84,7 +84,9 @@ export function getScaleFunctor(scaleType) {
   return SCALE_FUNC[scaleType] || SCALE_FUNC.quantize;
 }
 
-function nop() {}
+function nop() {
+  return;
+}
 
 export function getGetValue(this: CPUAggregator, step, props, dimensionUpdater) {
   const {key} = dimensionUpdater;
@@ -124,19 +126,28 @@ export function getDimensionValueDomain(this: CPUAggregator, step, props, dimens
     return;
   }
 
-  // for log and sqrt scale, returns linear domain by default
-  // TODO: support other scale function domain in bin sorter
-  const valueDomain = this.state.dimensions[key].sortedBins.getValueDomainByScale(
-    props[scaleType.prop],
-    [props[lowerPercentile.prop], props[upperPercentile.prop]]
-  );
+  let valueDomain =
+    // for log and sqrt scale, returns linear domain by default
+    // TODO: support other scale function domain in bin sorter
+    this.state.dimensions[key].sortedBins.getValueDomainByScale(props[scaleType.prop], [
+      props[lowerPercentile.prop],
+      props[upperPercentile.prop]
+    ]);
+
+  if (props.colorScaleType === 'custom' && props.colorMap) {
+    // for custom scale, return custom breaks as value domain directly
+    valueDomain = props.colorMap.reduce(
+      (prev, cur) => (Number.isFinite(cur[0]) ? prev.concat(cur[0]) : prev),
+      []
+    );
+  }
 
   this._setDimensionState(key, {valueDomain});
 }
 
 export function getDimensionScale(this: CPUAggregator, step, props, dimensionUpdater) {
   const {key} = dimensionUpdater;
-  const {domain, range, scaleType} = step.triggers;
+  const {domain, range, scaleType, fixed} = step.triggers;
   const {onSet} = step;
   if (!this.state.dimensions[key].valueDomain) {
     // the previous step should set valueDomain, if not, something went wrong
@@ -145,13 +156,18 @@ export function getDimensionScale(this: CPUAggregator, step, props, dimensionUpd
 
   const dimensionRange = props[range.prop];
   const dimensionDomain = props[domain.prop] || this.state.dimensions[key].valueDomain;
+  const dimensionFixed = Boolean(fixed && props[fixed.prop]);
 
   const scaleFunctor = getScaleFunctor(scaleType && props[scaleType.prop])();
 
-  const scaleFunc = scaleFunctor.domain(dimensionDomain).range(dimensionRange);
+  const scaleFunc = scaleFunctor
+    .domain(dimensionDomain)
+    .range(dimensionFixed ? dimensionDomain : dimensionRange);
+  scaleFunc.scaleType = props.colorScaleType;
 
   if (typeof onSet === 'object' && typeof props[onSet.props] === 'function') {
-    props[onSet.props](scaleFunc.domain());
+    const sortedBins = this.state.dimensions[key].sortedBins;
+    props[onSet.props]({domain: scaleFunc.domain(), aggregatedBins: sortedBins.binMap});
   }
   this._setDimensionState(key, {scaleFunc});
 }
@@ -209,7 +225,7 @@ export const defaultAggregation: AggregationType = {
   ]
 };
 
-function getSubLayerAccessor(dimensionState, dimension, layerProps) {
+function getSubLayerAccessor(dimensionState, dimension) {
   return cell => {
     const {sortedBins, scaleFunc} = dimensionState;
     const bin = sortedBins.binMap[cell.index];
@@ -222,7 +238,10 @@ function getSubLayerAccessor(dimensionState, dimension, layerProps) {
     const cv = bin && bin.value;
     const domain = scaleFunc.domain();
 
-    const isValueInDomain = cv >= domain[0] && cv <= domain[domain.length - 1];
+    const isValueInDomain =
+      scaleFunc.scaleType === 'custom'
+        ? cv >= sortedBins.minValue && cv <= sortedBins.maxValue
+        : cv >= domain[0] && cv <= domain[domain.length - 1];
 
     // if cell value is outside domain, set alpha to 0
     return isValueInDomain ? scaleFunc(cv) : dimension.nullValue;
@@ -354,6 +373,7 @@ export const defaultElevationDimension: DimensionType<number> = {
     {
       key: 'getScaleFunc',
       triggers: {
+        fixed: {prop: 'elevationFixed'},
         domain: {prop: 'elevationDomain'},
         range: {prop: 'elevationRange'},
         scaleType: {prop: 'elevationScaleType'}
@@ -369,7 +389,12 @@ export const defaultElevationDimension: DimensionType<number> = {
 
 export const defaultDimensions = [defaultColorDimension, defaultElevationDimension];
 
-export type CPUAggregatorState = {layerData: {data?}; dimensions: {}; geoJSON?; clusterBuilder?};
+export type CPUAggregatorState = {
+  layerData: {data?};
+  dimensions: object;
+  geoJSON?;
+  clusterBuilder?;
+};
 
 export default class CPUAggregator {
   static getDimensionScale: any;
@@ -571,10 +596,8 @@ export default class CPUAggregator {
     const updateTriggers = {};
 
     for (const key in this.dimensionUpdaters) {
-      const {
-        accessor,
-        updateSteps
-      }: {accessor; updateSteps: UpdateStepsType[]} = this.dimensionUpdaters[key];
+      const {accessor, updateSteps}: {accessor; updateSteps: UpdateStepsType[]} =
+        this.dimensionUpdaters[key];
       // fold dimension triggers into each accessor
       updateTriggers[accessor] = {};
 
@@ -633,7 +656,7 @@ export default class CPUAggregator {
   }
 
   getAccessor(dimensionKey, layerProps) {
-    if (!this.dimensionUpdaters.hasOwnProperty(dimensionKey)) {
+    if (!Object.prototype.hasOwnProperty.call(this.dimensionUpdaters, dimensionKey)) {
       return nop;
     }
     return this.dimensionUpdaters[dimensionKey].getSubLayerAccessor(

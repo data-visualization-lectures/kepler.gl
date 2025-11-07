@@ -19,16 +19,16 @@ import {StyledDatasetTitleProps, RemoveDatasetProps, ShowDataTableProps} from '.
 const StyledDatasetTitle = styled.div<StyledDatasetTitleProps>`
   color: ${props => props.theme.textColor};
   display: flex;
-  align-items: flex-start;
+  align-items: center;
 
   .source-data-arrow {
     height: 16px;
   }
-  :hover {
-    cursor: ${props => (props.clickable ? 'pointer' : 'auto')};
+  &:hover {
+    cursor: ${props => (props.$clickable ? 'pointer' : 'auto')};
 
     .dataset-name {
-      color: ${props => (props.clickable ? props.theme.textColorHl : props.theme.textColor)};
+      color: ${props => (props.$clickable ? props.theme.textColorHl : props.theme.textColor)};
     }
 
     .dataset-action {
@@ -52,6 +52,7 @@ type MiniDataset = {
   id: string;
   color: RGBColor;
   label?: string;
+  disableDataOperation?: boolean;
 };
 
 export type DatasetTitleProps = {
@@ -137,17 +138,18 @@ export default function DatasetTitleFactory(
         if (typeof onTitleClick === 'function') {
           onTitleClick();
         } else if (typeof showDatasetTable === 'function') {
+          if (dataset.disableDataOperation) return;
           showDatasetTable(datasetId);
         }
       },
-      [onTitleClick, showDatasetTable, datasetId]
+      [onTitleClick, showDatasetTable, datasetId, dataset.disableDataOperation]
     );
 
     return (
       <div className="custom-palette-panel" ref={root}>
         <StyledDatasetTitle
           className="source-data-title"
-          clickable={Boolean(showDatasetTable || onTitleClick)}
+          $clickable={Boolean(showDatasetTable || onTitleClick)}
         >
           <DatasetTag
             dataset={dataset}
@@ -161,18 +163,14 @@ export default function DatasetTitleFactory(
             top={-50}
             onClose={_handleClosePicker}
           >
-            <CustomPicker
-              color={rgbToHex(dataset.color)}
-              onChange={_handleCustomPicker}
-              onSwatchClose={_handleClosePicker}
-            />
+            <CustomPicker color={rgbToHex(dataset.color)} onChange={_handleCustomPicker} />
           </Portaled>
           {showDatasetTable ? (
             <CenterFlexbox className="source-data-arrow">
               <ArrowRight height="12px" />
             </CenterFlexbox>
           ) : null}
-          {showDatasetTable ? (
+          {showDatasetTable && !dataset.disableDataOperation ? (
             <ShowDataTable id={datasetId} showDatasetTable={showDatasetTable} />
           ) : null}
           {showDeleteDataset ? (

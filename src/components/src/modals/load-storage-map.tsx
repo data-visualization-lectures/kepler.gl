@@ -2,14 +2,16 @@
 // Copyright contributors to the kepler.gl project
 
 import React, {useCallback, useState, useEffect} from 'react';
-import {CloudHeader} from './cloud-components/cloud-header';
+import CloudHeaderFactory from './cloud-components/cloud-header';
 import {CloudMaps} from './cloud-components/cloud-maps';
 import {useCloudListProvider} from '../hooks/use-cloud-list-provider';
 import {ProviderSelect} from './cloud-components/provider-select';
 import {FlexColContainer} from '../common/flex-container';
 import {Provider, MapListItem} from '@kepler.gl/cloud-providers';
 
-function LoadStorageMapFactory() {
+LoadStorageMapFactory.deps = [CloudHeaderFactory];
+
+function LoadStorageMapFactory(CloudHeader: ReturnType<typeof CloudHeaderFactory>) {
   const LoadStorageMap = ({onLoadCloudMap}) => {
     const {provider: currentProvider, setProvider, cloudProviders} = useCloudListProvider();
     const [isLoading, setIsLoading] = useState(false);
@@ -33,14 +35,17 @@ function LoadStorageMapFactory() {
 
     useEffect(() => {
       setProviderInfo(currentProvider);
-    }, [currentProvider]);
+    }, [currentProvider, setProviderInfo]);
 
-    const onSelectMap = useCallback((provider, map) => {
-      onLoadCloudMap({
-        loadParams: map.loadParams,
-        provider
-      });
-    }, []);
+    const onSelectMap = useCallback(
+      (provider, map) => {
+        onLoadCloudMap({
+          loadParams: map.loadParams,
+          provider
+        });
+      },
+      [onLoadCloudMap]
+    );
 
     return (
       <FlexColContainer>

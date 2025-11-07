@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import styled, {ThemeProvider} from 'styled-components';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import {themeLT} from '@kepler.gl/styles';
@@ -64,7 +64,9 @@ export const SharingUrl: React.FC<SharingUrlProps> = ({url, message = ''}) => {
     </StyleSharingUrl>
   );
 };
-const nop = () => {};
+const nop = () => {
+  return;
+};
 
 const StyledShareMapModal = styled(StyledModalContent)`
   padding: 24px 72px 40px 72px;
@@ -80,6 +82,11 @@ const StyledInnerDiv = styled.div`
 const UNDERLINE_TEXT_DECORATION_STYLE = {textDecoration: 'underline'};
 
 const ShareMapHeader = ({cloudProviders}) => {
+  const shareableCloudProviders = useMemo(
+    () => cloudProviders.filter(cp => cp.hasSharingUrl()),
+    [cloudProviders]
+  );
+
   return (
     <StyledExportSection>
       <div className="description">
@@ -87,7 +94,7 @@ const ShareMapHeader = ({cloudProviders}) => {
           <FormattedMessage id={'modal.shareMap.title'} />
         </div>
       </div>
-      <ProviderSelect cloudProviders={cloudProviders} />
+      <ProviderSelect cloudProviders={shareableCloudProviders} />
     </StyledExportSection>
   );
 };
@@ -117,7 +124,7 @@ export default function ShareMapUrlModalFactory() {
       if (provider) {
         onExport(provider);
       }
-    }, [provider]);
+    }, [onExport, provider]);
 
     return (
       <ThemeProvider theme={themeLT}>

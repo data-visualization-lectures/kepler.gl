@@ -6,9 +6,14 @@ import booleanWithin from '@turf/boolean-within';
 import bboxPolygon from '@turf/bbox-polygon';
 import {fitBounds} from '@math.gl/web-mercator';
 import deepmerge from 'deepmerge';
-import pick from 'lodash.pick';
+import pick from 'lodash/pick';
 
-import {getCenterAndZoomFromBounds, validateBounds, MAPBOX_TILE_SIZE} from '@kepler.gl/utils';
+import {
+  getCenterAndZoomFromBounds,
+  validateBounds,
+  MAPBOX_TILE_SIZE,
+  validateViewPort
+} from '@kepler.gl/utils';
 import {MapStateActions, ReceiveMapConfigPayload, ActionTypes} from '@kepler.gl/actions';
 import {MapState, Bounds, Viewport} from '@kepler.gl/types';
 
@@ -18,7 +23,7 @@ import {MapState, Bounds, Viewport} from '@kepler.gl/types';
  * @public
  * @example
  *
- * import keplerGlReducer, {mapStateUpdaters} from 'kepler.gl/reducers';
+ * import keplerGlReducer, {mapStateUpdaters} from '@kepler.gl/reducers';
  * // Root Reducer
  * const reducers = combineReducers({
  *  keplerGl: keplerGlReducer,
@@ -47,11 +52,11 @@ import {MapState, Bounds, Viewport} from '@kepler.gl/types';
  *
  * export default composedReducer;
  */
-/* eslint-disable no-unused-vars */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const mapStateUpdaters = null;
-/* eslint-enable no-unused-vars */
-
+/* eslint-enable @typescript-eslint/no-unused-vars */
 /**
  * Default initial `mapState`
  * @memberof mapStateUpdaters
@@ -101,7 +106,8 @@ export const updateMapUpdater = (
   state: MapState,
   action: MapStateActions.UpdateMapUpdaterAction
 ): MapState => {
-  const {viewport, mapIndex = 0} = action.payload;
+  const {viewport: inputViewport, mapIndex = 0} = action.payload;
+  const viewport = validateViewPort(inputViewport);
 
   if (state.isViewportSynced) {
     // The `updateViewport` function is typed as (Viewport, Viewport) -> Viewport but here the
@@ -199,10 +205,7 @@ export const fitBoundsUpdater = (
  * @memberof mapStateUpdaters
  * @public
  */
-export const togglePerspectiveUpdater = (
-  state: MapState,
-  action: MapStateActions.TogglePerspectiveUpdaterAction
-): MapState => {
+export const togglePerspectiveUpdater = (state: MapState): MapState => {
   const newState = {
     ...state,
     ...{
@@ -275,6 +278,9 @@ export const receiveMapConfigUpdater = (
     });
   }
 
+  // make sure we validate map state before we merge
+  mergedState = validateViewPort(mergedState);
+
   return {
     ...mergedState,
     // update width if `isSplit` has changed
@@ -287,10 +293,7 @@ export const receiveMapConfigUpdater = (
  * @memberof mapStateUpdaters
  * @public
  */
-export const toggleSplitMapUpdater = (
-  state: MapState,
-  action: MapStateActions.ToggleSplitMapUpdaterAction
-): MapState => ({
+export const toggleSplitMapUpdater = (state: MapState): MapState => ({
   ...state,
   ...getMapDimForSplitMap(!state.isSplit, state),
   isSplit: !state.isSplit,
@@ -419,7 +422,7 @@ function updateViewportBasedOnBounds(state: MapState, newMapState: MapState) {
     if (!booleanWithin(viewportBoundsPolygon, maxBoundsPolygon)) {
       const {latitude, longitude, zoom} = fitBounds({
         width: newMapState.width,
-        height: newMapState.width,
+        height: newMapState.height,
         bounds: [
           [newStateMaxBounds[0], newStateMaxBounds[1]],
           [newStateMaxBounds[2], newStateMaxBounds[3]]

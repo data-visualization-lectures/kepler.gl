@@ -4,6 +4,8 @@
 import {
   toggleModalUpdater,
   loadFilesSuccessUpdater as uiStateLoadFilesSuccessUpdater,
+  setMapControlSettingsUpdater as uiStateSetMapControlSettingsUpdater,
+  toggleMapControlUpdater as uiStateToggleMapControlUpdater,
   toggleMapControlUpdater,
   toggleSplitMapUpdater as uiStateToggleSplitMapUpdater
 } from './ui-state-updaters';
@@ -57,7 +59,7 @@ export type KeplerGlState = {
  * @public
  * @example
  *
- * import keplerGlReducer, {combinedUpdaters} from 'kepler.gl/reducers';
+ * import keplerGlReducer, {combinedUpdaters} from '@kepler.gl/reducers';
  * // Root Reducer
  * const reducers = combineReducers({
  *  keplerGl: keplerGlReducer,
@@ -92,10 +94,10 @@ export type KeplerGlState = {
  * export default composedReducer;
  */
 
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const combinedUpdaters = null;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export const isValidConfig = config =>
   isPlainObject(config) && isPlainObject(config.config) && config.version;
@@ -143,7 +145,7 @@ export const addDataToMapUpdater = (
     ...payload.options
   };
 
-  // check if progresive loading dataset by bataches, and update visState directly
+  // check if progressive loading dataset by batches, and update visState directly
   const isProgressiveLoading =
     Array.isArray(datasets) &&
     datasets[0]?.info.format === 'arrow' &&
@@ -181,6 +183,7 @@ export const addDataToMapUpdater = (
 
   return compose_<KeplerGlState>([
     pick_('visState')(
+      // this part can be async
       apply_<VisState, any>(visStateUpdateVisDataUpdater, {
         datasets,
         options,
@@ -188,12 +191,9 @@ export const addDataToMapUpdater = (
       })
     ),
 
-    if_(
-      Boolean(info),
-      pick_('visState')(
-        apply_<VisState, any>(setMapInfoUpdater, {info})
-      )
-    ),
+    if_(Boolean(info), pick_('visState')(apply_<VisState, any>(setMapInfoUpdater, {info}))),
+    // Note that fit bounds here won't be called in case datasets are created in Tasks.
+    // A separate Task to update bounds is created once the datasets are ready.
     with_(({visState}) =>
       pick_('mapState')(
         apply_(
@@ -208,8 +208,34 @@ export const addDataToMapUpdater = (
     ),
     pick_('mapStyle')(apply_(styleMapConfigUpdater, payload_({config: parsedConfig, options}))),
     pick_('uiState')(apply_(uiStateLoadFilesSuccessUpdater, payload_(null))),
+
+    if_(
+      Boolean(parsedConfig?.uiState?.mapControls?.mapLegend?.active),
+      pick_('uiState')(
+        apply_(uiStateToggleMapControlUpdater, payload_({panelId: 'mapLegend', index: 0}))
+      )
+    ),
+
+    if_(
+      Boolean(parsedConfig?.uiState?.mapControls?.mapLegend?.settings),
+      pick_('uiState')(
+        apply_(
+          uiStateSetMapControlSettingsUpdater,
+          payload_({
+            panelId: 'mapLegend',
+            settings: parsedConfig?.uiState?.mapControls?.mapLegend?.settings ?? {}
+          })
+        )
+      )
+    ),
     pick_('uiState')(apply_(toggleModalUpdater, payload_(null))),
-    pick_('uiState')(merge_(options.hasOwnProperty('readOnly') ? {readOnly: options.readOnly} : {}))
+    pick_('uiState')(
+      merge_(
+        Object.prototype.hasOwnProperty.call(options, 'readOnly')
+          ? {readOnly: options.readOnly}
+          : {}
+      )
+    )
   ])(state);
 };
 
@@ -254,23 +280,22 @@ const updateOverlayBlending = overlayBlending => visState => {
  * Helper which updates `darkBaseMapEnabled` in all the layers in visState which
  * have this config setting (or in one specific layer if the `layerId` param is provided).
  */
-const updateDarkBaseMapLayers = (
-  darkBaseMapEnabled: boolean,
-  layerId: string | null = null
-) => visState => ({
-  ...visState,
-  layers: visState.layers.map(layer => {
-    if (!layerId || layer.id === layerId) {
-      if (layer.visConfigSettings.hasOwnProperty('darkBaseMapEnabled')) {
-        const {visConfig} = layer.config;
-        return layer.updateLayerConfig({
-          visConfig: {...visConfig, darkBaseMapEnabled}
-        });
+const updateDarkBaseMapLayers =
+  (darkBaseMapEnabled: boolean, layerId: string | null = null) =>
+  visState => ({
+    ...visState,
+    layers: visState.layers.map(layer => {
+      if (!layerId || layer.id === layerId) {
+        if (Object.prototype.hasOwnProperty.call(layer.visConfigSettings, 'darkBaseMapEnabled')) {
+          const {visConfig} = layer.config;
+          return layer.updateLayerConfig({
+            visConfig: {...visConfig, darkBaseMapEnabled}
+          });
+        }
       }
-    }
-    return layer;
-  })
-});
+      return layer;
+    })
+  });
 
 /**
  * Updater that changes the map style by calling mapStyleChangeUpdater on visState.
@@ -331,7 +356,7 @@ export const combinedLayerTypeChangeUpdater = (
   const oldLayerIndex = visState.layers.findIndex(layer => layer === action.oldLayer);
   visState = layerTypeChangeUpdater(visState, action);
   const newLayer = visState.layers[oldLayerIndex];
-  if (newLayer?.visConfigSettings.hasOwnProperty('darkBaseMapEnabled')) {
+  if (Object.prototype.hasOwnProperty.call(newLayer?.visConfigSettings, 'darkBaseMapEnabled')) {
     const {mapStyle} = state;
     const {colorMode} = mapStyle.mapStyles[mapStyle.styleType];
     const {darkBaseMapEnabled} = newLayer.config.visConfig;
@@ -367,7 +392,7 @@ export const toggleSplitMapUpdater = (
     ...state,
     visState: visStateToggleSplitMapUpdater(state.visState, action),
     uiState: uiStateToggleSplitMapUpdater(state.uiState),
-    mapState: mapStateToggleSplitMapUpdater(state.mapState, action)
+    mapState: mapStateToggleSplitMapUpdater(state.mapState)
   };
 
   const isSplit = newState.visState.splitMaps.length !== 0;

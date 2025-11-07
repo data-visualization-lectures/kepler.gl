@@ -47,6 +47,7 @@ export const titleColorLT = '#29323C';
 export const subtextColor = '#6A7485';
 export const subtextColorLT = '#A0A7B4';
 export const subtextColorActive = '#FFFFFF';
+export const fontWhiteColor = '#54638c';
 export const panelToggleBorderColor = '#FFFFFF';
 export const panelTabWidth = '30px';
 
@@ -106,6 +107,7 @@ export const floatingBtnBorder = '0';
 export const floatingBtnBorderHover = '0';
 export const floatingBtnColor = subtextColor;
 export const floatingBtnActColor = subtextColorActive;
+export const floatingBtnRadius = '0px';
 
 export const selectionBtnBgd = 'transparent';
 export const selectionBtnActBgd = 'transparent';
@@ -341,6 +343,9 @@ export const sliderMarginTopIsTime = -12;
 export const sliderMarginTop = 12;
 export const sliderMarginBottom = 12;
 
+// Custom Range Input
+export const customRangeInputWidth = 100;
+
 // Geocoder
 export const geocoderWidth = 360;
 export const geocoderTop = 20;
@@ -354,6 +359,8 @@ export const mapControlTop = 52;
 export const rangeBrushBgd = '#3A414C';
 export const histogramFillInRange = activeColor;
 export const histogramFillOutRange = sliderBarColor;
+export const histogramOverlayColor = '#999999';
+export const histogramBreakLineColor = '#505b7c';
 export const axisFontSize = '10px';
 export const axisFontColor = textColor;
 export const timeTitleFontSize = '10px';
@@ -455,6 +462,8 @@ export const breakPoints = {
   desk: 768
 };
 
+export const aiAssistantPanelWidth = 415;
+
 // effect manager
 export const effectConfiguratorMargin = '18px 0 18px 0';
 export const effectConfiguratorPadding = '0 0 0 18px';
@@ -488,14 +497,14 @@ export const rightPanelMarginRight = 12;
 // all child components
 
 const input = css<InputProps>`
-  ::placeholder {
+  &::placeholder {
     color: ${props => props.theme.inputPlaceholderColor};
     font-weight: ${props => props.theme.inputPlaceholderFontWeight};
   }
 
   /* Disable Arrows on Number Inputs */
-  ::-webkit-inner-spin-button,
-  ::-webkit-outer-spin-button {
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
@@ -543,7 +552,7 @@ const input = css<InputProps>`
   opacity: ${props => (props.disabled ? 0.5 : 1)};
   box-shadow: ${props => props.theme.inputBoxShadow};
 
-  :hover {
+  &:hover {
     cursor: ${props => (props.type === 'number' || props.type === 'text' ? 'text' : 'pointer')};
     background-color: ${props =>
       props.active ? props.theme.inputBgdActive : props.theme.inputBgdHover};
@@ -551,8 +560,8 @@ const input = css<InputProps>`
       props.active ? props.theme.inputBorderActiveColor : props.theme.inputBorderHoverColor};
   }
 
-  :active,
-  :focus,
+  &:active,
+  &:focus,
   &.focus,
   &.active {
     background-color: ${props => props.theme.inputBgdActive};
@@ -561,8 +570,8 @@ const input = css<InputProps>`
   }
 `;
 
-const inputLT = css`
-  ::placeholder {
+const inputLT = css<InputProps>`
+  &::placeholder {
     color: ${props => props.theme.inputPlaceholderColorLT};
     font-weight: 400;
   }
@@ -579,15 +588,15 @@ const inputLT = css`
   color: ${props => props.theme.selectColorLT};
   caret-color: ${props => props.theme.inputBorderActiveColorLT};
 
-  :hover {
+  &:hover {
     background-color: ${props => props.theme.inputBgdActiveLT};
     cursor: ${props => (['number', 'text'].includes(props.type) ? 'text' : 'pointer')};
     border-color: ${props =>
       props.active ? props.theme.inputBorderActiveColorLT : props.theme.inputBorderHoverColorLT};
   }
 
-  :active,
-  :focus,
+  &:active,
+  &:focus,
   &.focus,
   &.active {
     background-color: ${props => props.theme.inputBgdActiveLT};
@@ -603,13 +612,15 @@ const secondaryInput = css<SecondaryInputProps>`
   border: 1px solid
     ${props => (props.error ? props.theme.errorColor : props.theme.secondaryInputBorderColor)};
 
-  :hover {
+  &:hover {
     cursor: pointer;
     background-color: ${props => props.theme.secondaryInputBgdHover};
     border-color: ${props => props.theme.secondaryInputBgdHover};
   }
 
-  :active,
+  &:active,
+  &:focus,
+  &.focus,
   &.active {
     background-color: ${props => props.theme.secondaryInputBgdActive};
     border-color: ${props => props.theme.secondaryInputBorderActiveColor};
@@ -655,16 +666,16 @@ const inlineInput = css`
   background-color: transparent;
   border: 1px solid transparent;
 
-  :hover {
+  &:hover {
     height: 24px;
     cursor: text;
     background-color: transparent;
     border: 1px solid ${props => props.theme.labelColor};
   }
 
-  :active,
+  &:active,
   .active,
-  :focus {
+  &:focus {
     background-color: transparent;
     border: 1px solid ${props => props.theme.inputBorderActiveColor};
   }
@@ -716,11 +727,11 @@ const inputSwitch = css`
   padding-bottom: 0;
   padding-left: ${props => props.theme.switchWidth}px;
 
-  :before {
+  &:before {
     ${props => props.theme.switchTrack};
   }
 
-  :after {
+  &:after {
     ${props => props.theme.switchButton};
   }
 `;
@@ -768,11 +779,11 @@ const inputCheckbox = css`
   color: ${props => props.theme.labelColor};
   margin-left: -${props => props.theme.switchLabelMargin}px;
 
-  :before {
+  &:before {
     ${props => props.theme.checkboxBox};
   }
 
-  :after {
+  &:after {
     ${props => props.theme.checkboxCheck};
   }
 `;
@@ -806,11 +817,11 @@ const inputRadio = css`
   color: ${props => props.theme.textColorHl};
   cursor: pointer;
 
-  :before {
+  &:before {
     ${props => props.theme.radioTrack}
   }
 
-  :after {
+  &:after {
     ${props => props.theme.radioButton}
   }
 `;
@@ -818,11 +829,11 @@ const inputRadio = css`
 const secondaryRadio = css<SwitchableProps>`
   ${props => props.theme.inputRadio}
 
-  :before {
+  &:before {
     ${props => props.theme.radioTrack} background: ${props => props.theme.secondarySwitchTrackBgd};
   }
 
-  :after {
+  &:after {
     ${props => props.theme.radioButton}
     background: ${props =>
       props.checked ? props.theme.switchBtnBgdActive : props.theme.secondarySwitchBtnBgd};
@@ -832,12 +843,12 @@ const secondaryRadio = css<SwitchableProps>`
 const secondarySwitch = css<SwitchableProps>`
   ${props => props.theme.inputSwitch}
 
-  :before {
+  &:before {
     ${props => props.theme.switchTrack} background: ${props =>
-  props.checked ? props.theme.switchTrackBgdActive : props.theme.secondarySwitchTrackBgd};
+      props.checked ? props.theme.switchTrackBgdActive : props.theme.secondarySwitchTrackBgd};
   }
 
-  :after {
+  &:after {
     ${props => props.theme.switchButton}
     background: ${props =>
       props.checked ? props.theme.switchBtnBgdActive : props.theme.secondarySwitchBtnBgd};
@@ -845,26 +856,26 @@ const secondarySwitch = css<SwitchableProps>`
 `;
 
 const dropdownScrollBar = css`
-  ::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     height: 10px;
     width: 10px;
   }
 
-  ::-webkit-scrollbar-corner {
+  &::-webkit-scrollbar-corner {
     background: ${props => props.theme.dropdownListBgd};
   }
 
-  ::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: ${props => props.theme.dropdownListBgd};
   }
 
-  ::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background: ${props => props.theme.labelColor};
     border: 3px solid ${props => props.theme.dropdownListBgd};
   }
 
-  :vertical:hover {
+  &:vertical:hover {
     background: ${props => props.theme.textColorHl};
     cursor: pointer;
   }
@@ -875,17 +886,17 @@ const dropdownScrollBarLT = css`
     background: ${props => props.theme.dropdownListBgdLT};
   }
 
-  ::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: ${props => props.theme.dropdownListBgdLT};
   }
 
-  ::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background: ${props => props.theme.scrollbarThumbColorLT};
     border: 3px solid ${props => props.theme.dropdownListBgdLT};
   }
 
-  :vertical:hover {
+  &:vertical:hover {
     background: ${props => props.theme.scrollbarThumbColorHoverLT};
     cursor: pointer;
   }
@@ -925,6 +936,9 @@ const dropdownListItem = css`
     .list__item__anchor {
       color: ${props => props.theme.textColorHl};
     }
+  }
+  &.selected {
+    background-color: ${props => props.theme.dropdownListHighlightBg};
   }
 `;
 
@@ -995,25 +1009,25 @@ const dropdownListLT = css`
   ${props => props.theme.dropdownScrollBarLT};
 `;
 const sidePanelScrollBar = css`
-  ::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     height: ${props => props.theme.sidePanelScrollBarHeight}px;
     width: ${props => props.theme.sidePanelScrollBarWidth}px;
   }
 
-  ::-webkit-scrollbar-corner {
+  &::-webkit-scrollbar-corner {
     background: ${props => props.theme.sidePanelBg};
   }
 
-  ::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: ${props => props.theme.sidePanelBg};
   }
 
-  ::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background: ${props => props.theme.panelBackgroundHover};
     border: 3px solid ${props => props.theme.sidePanelBg};
 
-    :hover {
+    &:hover {
       background: ${props => props.theme.labelColor};
       cursor: pointer;
     }
@@ -1021,24 +1035,24 @@ const sidePanelScrollBar = css`
 `;
 
 const panelDropdownScrollBar = css`
-  ::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     height: 10px;
     width: 10px;
   }
 
-  ::-webkit-scrollbar-corner {
+  &::-webkit-scrollbar-corner {
     background: ${props => props.theme.panelBackground};
   }
 
-  ::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: ${props => props.theme.panelBackground};
   }
 
-  ::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background: ${props => props.theme.panelBackgroundHover};
     border: 3px solid ${props => props.theme.panelBackground};
-    :hover {
+    &:hover {
       background: ${props => props.theme.labelColor};
       cursor: pointer;
     }
@@ -1046,20 +1060,20 @@ const panelDropdownScrollBar = css`
 `;
 
 const scrollBar = css`
-  ::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     height: 10px;
     width: 10px;
   }
 
-  ::-webkit-scrollbar-corner {
+  &::-webkit-scrollbar-corner {
     background: ${props => props.theme.panelBackground};
   }
 
-  ::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: ${props => props.theme.panelBackground};
   }
 
-  ::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background: ${props => props.theme.labelColor};
     border: 3px solid ${props => props.theme.panelBackground};
@@ -1077,35 +1091,35 @@ const scrollBar = css`
 `;
 
 export const modalScrollBar = css`
-  ::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     width: 14px;
     height: 16px;
   }
 
-  ::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: white;
   }
-  ::-webkit-scrollbar-track:horizontal {
+  &::-webkit-scrollbar-track:horizontal {
     background: ${props => props.theme.textColorHl};
   }
-  ::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     background: ${props => props.theme.scrollbarThumbColorLT};
     border: 4px solid white;
   }
 
-  ::-webkit-scrollbar-corner {
+  &::-webkit-scrollbar-corner {
     background: ${props => props.theme.textColorHl};
   }
 
-  ::-webkit-scrollbar-thumb:hover {
+  &::-webkit-scrollbar-thumb:hover {
     background: ${props => props.theme.scrollbarThumbColorHoverLT};
   }
 
-  ::-webkit-scrollbar-thumb:vertical {
+  &::-webkit-scrollbar-thumb:vertical {
     border-radius: 7px;
   }
 
-  ::-webkit-scrollbar-thumb:horizontal {
+  &::-webkit-scrollbar-thumb:horizontal {
     border-radius: 9px;
     border: 4px solid ${props => props.theme.textColorHl};
   }
@@ -1311,6 +1325,7 @@ export const theme = {
   floatingBtnBorderHover,
   floatingBtnColor,
   floatingBtnActColor,
+  floatingBtnRadius,
 
   ctaBtnBgd,
   ctaBtnBgdHover,
@@ -1412,6 +1427,7 @@ export const theme = {
   subtextColor,
   subtextColorLT,
   subtextColorActive,
+  fontWhiteColor,
   panelToggleBorderColor,
   panelTabWidth,
   textTruncate,
@@ -1461,6 +1477,9 @@ export const theme = {
   sliderMarginTop,
   sliderMarginBottom,
 
+  // Custom Range Input
+  customRangeInputWidth,
+
   // Geocoder
   geocoderWidth,
   geocoderTop,
@@ -1474,6 +1493,8 @@ export const theme = {
   rangeBrushBgd,
   histogramFillInRange,
   histogramFillOutRange,
+  histogramOverlayColor,
+  histogramBreakLineColor,
   axisFontSize,
   axisFontColor,
   timeTitleFontSize,
@@ -1556,6 +1577,12 @@ export const theme = {
   fieldTokenRightMargin,
   fieldTokenHeight,
   fieldTokenWidth,
+
+  // COLORS
+  BLUE2: 'rgba(85, 88, 219, 0.2)',
+
+  // AI Assistant Panel
+  aiAssistantPanelWidth,
 
   // Effect panel
   effectPanelWidth,

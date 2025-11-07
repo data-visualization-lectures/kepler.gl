@@ -1,39 +1,29 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import React, {ElementType, MouseEventHandler, ReactNode, useMemo, useCallback} from 'react';
+import React, {MouseEventHandler, ReactNode, useMemo, useCallback} from 'react';
 
-import styled from 'styled-components';
+import styled, {IStyledComponent} from 'styled-components';
 import {DndContext, DragOverlay, pointerWithin} from '@dnd-kit/core';
-import {SortableContext, useSortable, arrayMove} from '@dnd-kit/sortable';
+import {SortableContext, useSortable} from '@dnd-kit/sortable';
 import {restrictToParentElement} from '@dnd-kit/modifiers';
 
-import Delete from '../icons/delete';
 import {FormattedMessage} from '@kepler.gl/localization';
+import {arrayMove} from '@kepler.gl/common-utils';
 
-interface ChickletedInputProps {
-  // required properties
-  onClick: MouseEventHandler<HTMLDivElement>;
-  removeItem: Function;
+import Delete from '../icons/delete';
+import {BaseComponentProps} from '../../types';
+import {shouldForwardProp} from '../styled-components';
 
-  // optional properties
-  selectedItems?: any[];
-  disabled?: boolean;
-  displayOption?: Function;
-  focus?: boolean;
-  error?: boolean;
-  placeholder?: string;
+export type ChickletButtonProps = BaseComponentProps & {
   inputTheme?: string;
-  CustomChickletComponent?: ElementType;
-  className?: string;
-  reorderItems?: (newOrder: any) => void;
-}
+  ref?: (node: HTMLElement | null) => void;
+};
 
-interface ChickletButtonProps {
-  inputTheme?: string;
-}
-
-export const ChickletButton = styled.div<ChickletButtonProps>`
+export const ChickletButton: IStyledComponent<
+  'web',
+  ChickletButtonProps
+> = styled.div<ChickletButtonProps>`
   background: ${props =>
     props.inputTheme === 'light' ? props.theme.chickletBgdLT : props.theme.chickletBgd};
   border-radius: 1px;
@@ -47,20 +37,20 @@ export const ChickletButton = styled.div<ChickletButtonProps>`
   align-items: center;
   max-width: calc(100% - 8px);
 
-  :hover {
+  &:hover {
     color: ${props =>
       props.inputTheme === 'light' ? props.theme.textColorHlLT : props.theme.textColorHl};
   }
 `;
 
 const DND_MODIFIERS = [restrictToParentElement];
-export const ChickletTag = styled.span`
+export const ChickletTag: IStyledComponent<'web'> = styled.span`
   margin-right: 10px;
   text-overflow: ellipsis;
   width: 100%;
   overflow: hidden;
 
-  :hover {
+  &:hover {
     overflow: visible;
   }
 `;
@@ -75,23 +65,29 @@ interface ChickletProps {
 const Chicklet = ({disabled, name, remove, inputTheme}: ChickletProps) => (
   <ChickletButton inputTheme={inputTheme}>
     <ChickletTag>{name}</ChickletTag>
-    <Delete onClick={disabled ? undefined : remove} />
+    <Delete height="16px" onClick={disabled ? undefined : remove} />
   </ChickletButton>
 );
 
-interface ChickletedInputContainerProps {
+export type ChickletedInputContainerProps = BaseComponentProps & {
   inputTheme?: string;
   hasPlaceholder?: boolean;
-}
+  focus?: HTMLInputElement['focus'];
+  disabled?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+};
 
-const ChickletedInputContainer = styled.div<ChickletedInputContainerProps>`
+const ChickletedInputContainer: IStyledComponent<
+  'web',
+  ChickletedInputContainerProps
+> = styled.div.withConfig({shouldForwardProp})<ChickletedInputContainerProps>`
   ${props =>
     props.inputTheme === 'secondary'
       ? props.theme.secondaryChickletedInput
       : props.inputTheme === 'light'
       ? props.theme.chickletedInputLT
       : props.theme.chickletedInput}
-      
+
   color: ${props =>
     props.hasPlaceholder ? props.theme.selectColorPlaceHolder : props.theme.selectColor};
   overflow: hidden;
@@ -128,10 +124,8 @@ const ChickletedItem = ({
       item,
       removeItem,
       displayOption,
-      CustomChickletComponent,
       inputTheme,
       disabled,
-      itemId,
       attributes,
       listeners,
       setNodeRef,
@@ -147,6 +141,17 @@ const ChickletedItem = ({
   );
 };
 
+type Item = string | number | boolean | object | undefined;
+
+export type ChickletedInputProps = ChickletedInputContainerProps & {
+  selectedItems?: any[];
+  placeholder?: string;
+  CustomChickletComponent?: React.ComponentType<any> | null;
+  reorderItems?: (newOrder: any) => void;
+  displayOption?: (item: Item) => string;
+  removeItem: (item: Item, e: React.MouseEvent<SVGSVGElement, MouseEvent>) => void;
+};
+
 const ChickletedInput: React.FC<ChickletedInputProps> = ({
   disabled,
   onClick,
@@ -155,14 +160,14 @@ const ChickletedInput: React.FC<ChickletedInputProps> = ({
   placeholder = '',
   removeItem,
   reorderItems = d => d,
-  displayOption = d => d,
+  displayOption = d => String(d),
   inputTheme,
   CustomChickletComponent
 }) => {
-  const selectedItemIds = useMemo(() => selectedItems.map(item => displayOption(item)), [
-    displayOption,
-    selectedItems
-  ]);
+  const selectedItemIds = useMemo(
+    () => selectedItems.map(item => displayOption(item)),
+    [displayOption, selectedItems]
+  );
   const handleDragEnd = useCallback(
     ({active, over}) => {
       if (!over) return;
@@ -172,7 +177,7 @@ const ChickletedInput: React.FC<ChickletedInputProps> = ({
         reorderItems(arrayMove(selectedItems, oldIndex, newIndex));
       }
     },
-    [selectedItems, displayOption, reorderItems]
+    [selectedItemIds, selectedItems, reorderItems]
   );
 
   return (

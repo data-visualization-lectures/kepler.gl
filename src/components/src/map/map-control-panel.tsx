@@ -2,13 +2,14 @@
 // Copyright contributors to the kepler.gl project
 
 import React, {useCallback} from 'react';
-import styled, {StyledComponent} from 'styled-components';
+import styled from 'styled-components';
 import {FormattedMessage} from '@kepler.gl/localization';
 import {CenterFlexbox, IconRoundSmall} from '../common/styled-components';
 import {Close, Pin} from '../common/icons';
 import Switch from '../common/switch';
 import {MapState} from '@kepler.gl/types';
 import {ActionHandler, toggleSplitMapViewport} from '@kepler.gl/actions';
+import classNames from 'classnames';
 
 const StyledMapControlPanel = styled.div`
   background-color: ${props => props.theme.mapPanelBackgroundColor};
@@ -19,14 +20,18 @@ const StyledMapControlPanel = styled.div`
   }
 `;
 
+type StyledMapControlPanelContentProps = {
+  isExport?: boolean;
+};
+
 const StyledMapControlPanelContent = styled.div.attrs({
   className: 'map-control__panel-content'
-})`
-  ${props => props.theme.dropdownScrollBar};
+})<StyledMapControlPanelContentProps>`
+  ${props => props.theme.sidePanelScrollBar};
   max-height: 500px;
   min-height: 100px;
   min-width: ${props => props.theme.mapControl.width}px;
-  overflow: overlay;
+  overflow: ${props => (props.isExport ? 'hidden' : 'overlay')};
 `;
 
 type MapControlPanelHeaderProps = {
@@ -46,6 +51,7 @@ const StyledMapControlPanelHeader = styled.div.attrs({
   color: ${props => props.theme.titleTextColor};
   position: relative;
   box-sizing: border-box;
+  align-items: center;
 
   button {
     width: 18px;
@@ -53,14 +59,7 @@ const StyledMapControlPanelHeader = styled.div.attrs({
   }
 `;
 
-const StyledMapControlPanelHeaderSplitViewportsTools: StyledComponent<
-  'div',
-  any,
-  {
-    className: 'map-control__panel-split-viewport-tools';
-  },
-  'className'
-> = styled(StyledMapControlPanelHeader).attrs({
+const StyledMapControlPanelHeaderSplitViewportsTools = styled(StyledMapControlPanelHeader).attrs({
   className: 'map-control__panel-split-viewport-tools'
 })`
   display: flex;
@@ -94,17 +93,17 @@ const StyledIcon = styled(IconRoundSmall)`
   color: ${props => props.theme.activeColor};
   background-color: transparent;
 
-  :hover {
+  &:hover {
     cursor: pointer;
     background-color: transparent;
-    color: ${props => props.theme.linkBtnColor};
+    color: ${props => props.theme.floatingBtnActColor};
   }
 `;
 
 export type MapControlPanelProps = {
   header?: string;
   scale?: number;
-  onClick: React.MouseEventHandler<HTMLDivElement>;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
   onPinClick?: React.MouseEventHandler<HTMLDivElement>;
   pinnable?: boolean;
   disableClose?: boolean;
@@ -114,6 +113,7 @@ export type MapControlPanelProps = {
   onToggleSplitMapViewport?: ActionHandler<typeof toggleSplitMapViewport>;
   isViewportUnsyncAllowed?: boolean;
   children?: React.ReactNode;
+  className?: string;
 };
 
 function MapControlPanelFactory() {
@@ -130,7 +130,8 @@ function MapControlPanelFactory() {
       logoComponent,
       mapState,
       onToggleSplitMapViewport,
-      isViewportUnsyncAllowed
+      isViewportUnsyncAllowed,
+      className = 'map-control-panel'
     }) => {
       const {isViewportSynced, isZoomLocked} = mapState || {};
       const onUnlockViewportChange = useCallback(() => {
@@ -143,11 +144,11 @@ function MapControlPanelFactory() {
 
       return (
         <StyledMapControlPanel
-          className="map-control-panel"
           style={{
             transform: `scale(${scale})`,
             marginBottom: '8px !important'
           }}
+          className={classNames('map-control-panel', className)}
         >
           {mapState?.isSplit && isViewportUnsyncAllowed ? (
             <StyledMapControlPanelHeaderSplitViewportsTools>
@@ -198,7 +199,9 @@ function MapControlPanelFactory() {
               </>
             )}
           </StyledMapControlPanelHeader>
-          <StyledMapControlPanelContent>{children}</StyledMapControlPanelContent>
+          <StyledMapControlPanelContent isExport={isExport}>
+            {children}
+          </StyledMapControlPanelContent>
         </StyledMapControlPanel>
       );
     }

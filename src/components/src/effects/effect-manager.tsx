@@ -5,23 +5,37 @@ import React, {useMemo, useState, useCallback} from 'react';
 import styled from 'styled-components';
 import {injectIntl, IntlShape} from 'react-intl';
 
-import {addEffect, updateEffect, removeEffect, reorderEffect} from '@kepler.gl/actions';
+import {
+  addEffect,
+  updateEffect,
+  removeEffect,
+  reorderEffect,
+  ActionHandler
+} from '@kepler.gl/actions';
 import {LIGHT_AND_SHADOW_EFFECT, EFFECT_DESCRIPTIONS} from '@kepler.gl/constants';
-import {VisStateActions} from '@kepler.gl/actions';
+import {visStateLens} from '@kepler.gl/reducers';
 import {Effect} from '@kepler.gl/types';
+import {VisState} from '@kepler.gl/schemas';
 
 import {withState} from '../injector';
 import SidePanelTitleFactory from './side-panel-title';
 import EffectListFactory from './effect-list';
-import EffectTypeSelectorFactory from './effect-type-selector';
+import EffectTypeSelectorFactory, {EffectTypeSelectorProps} from './effect-type-selector';
 
 export type EffectManagerState = {
-  visStateActions: typeof VisStateActions;
+  visState: VisState;
+  visStateActions: {
+    addEffect: ActionHandler<typeof addEffect>;
+    updateEffect: ActionHandler<typeof updateEffect>;
+    removeEffect: ActionHandler<typeof removeEffect>;
+    reorderEffect: ActionHandler<typeof reorderEffect>;
+  };
   effects: Effect[];
   effectOrder: string[];
   children: React.ReactNode;
 };
-export type EffectManagerProps = {};
+export type EffectManagerProps = EffectManagerWithIntlProp & EffectManagerState;
+
 export type EffectManagerWithIntlProp = {intl: IntlShape};
 
 const StyledEffectPanelContainer = styled.div`
@@ -50,7 +64,7 @@ const StyledEffectPanel = styled.div`
 
 const StyledEffectPanelHeader = styled.div`
   padding: ${({theme}) =>
-    `${theme.effectPanelPaddingTop}px ${theme.effectPanelPaddingSide}px 4px ${theme.effectPanelPaddingSide}px}`};
+    `${theme.effectPanelPaddingTop}px ${theme.effectPanelPaddingSide}px 4px ${theme.effectPanelPaddingSide}px`};
   border-bottom: 1px solid ${props => props.theme.borderColor};
   min-width: ${({theme}) => theme.effectPanelWidth}px;
 `;
@@ -74,12 +88,13 @@ function EffectManagerFactory(
   EffectTypeSelector: ReturnType<typeof EffectTypeSelectorFactory>
 ): React.FC<EffectManagerProps> {
   const EffectManager = (props: EffectManagerWithIntlProp & EffectManagerState) => {
-    const {intl, visStateActions, effects, effectOrder, children} = props;
-
+    const {intl, visStateActions, visState, children} = props;
+    const {effects, effectOrder} = visState;
+    const {addEffect: visStateAddEffect} = visStateActions;
     const [typeSelectorOpened, setTypeSelectorOpened] = useState(false);
 
     // Prevent shadow effect from being added multiple times
-    const effectOptions = useMemo(() => {
+    const effectOptions: EffectTypeSelectorProps['options'] = useMemo(() => {
       const hasShadow = effects.some(effect => {
         return effect.type === LIGHT_AND_SHADOW_EFFECT.type;
       });
@@ -92,9 +107,12 @@ function EffectManagerFactory(
       });
     }, [effects]);
 
-    const onAddEffect = useCallback(type => {
-      visStateActions.addEffect({type});
-    }, []);
+    const onAddEffect = useCallback(
+      type => {
+        visStateAddEffect({type});
+      },
+      [visStateAddEffect]
+    );
 
     const onTypeSelectOpen = useCallback(() => {
       setTypeSelectorOpened(true);
@@ -107,7 +125,7 @@ function EffectManagerFactory(
     return (
       <StyledEffectPanelContainer className="effect-manager">
         <StyledEffectPanel>
-          <StyledEffectPanelHeader>
+          <StyledEffectPanelHeader className="effect-panel-header">
             <SidePanelTitle
               className="effect-manager-title"
               title={intl.formatMessage({id: 'effectManager.effects'})}
@@ -135,19 +153,9 @@ function EffectManagerFactory(
     );
   };
 
-  return withState(
-    [],
-    state => {
-      const visState = state.demo.keplerGl.map.visState;
-      return {
-        effects: visState.effects,
-        effectOrder: visState.effectOrder
-      };
-    },
-    {
-      visStateActions: {addEffect, updateEffect, removeEffect, reorderEffect}
-    }
-  )(injectIntl(EffectManager)) as React.FC<{}>;
+  return withState([visStateLens], state => state, {
+    visStateActions: {addEffect, updateEffect, removeEffect, reorderEffect}
+  })(injectIntl(EffectManager)) as React.FC<EffectManagerProps>;
 }
 
 export default EffectManagerFactory;

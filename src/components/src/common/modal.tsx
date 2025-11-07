@@ -4,14 +4,16 @@
 import React, {Component, ReactNode, PropsWithChildren} from 'react';
 import {FormattedMessage} from '@kepler.gl/localization';
 
-import styled, {FlattenSimpleInterpolation} from 'styled-components';
+import styled, {css} from 'styled-components';
 import Modal from 'react-modal';
 import {Delete} from './icons';
 import {Button} from './styled-components';
 import {media} from '@kepler.gl/styles';
 
+type CssStyleType = ReturnType<typeof css>;
+
 interface ModalContentWrapperProps {
-  cssStyle?: FlattenSimpleInterpolation | string;
+  cssStyle?: CssStyleType | string;
 }
 
 const ModalContentWrapper = styled.div<ModalContentWrapperProps>`
@@ -88,7 +90,7 @@ const CloseButton = styled.div`
   top: 24px;
   right: 24px;
 
-  :hover {
+  &:hover {
     cursor: pointer;
   }
 `;
@@ -134,6 +136,7 @@ type ModalFooterProps = {
  */
 const processDisabledProperty = (props: ModalButtonProps): ModalButtonProps => {
   if (!props.disabled) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {disabled, ...newProps} = props;
     return newProps;
   }
@@ -165,7 +168,7 @@ export const ModalFooter: React.FC<ModalFooterProps> = ({
   );
 };
 
-interface ModalDialogOwnProps {
+export interface ModalDialogOwnProps {
   footer: boolean;
   close: boolean;
   isOpen: boolean;
@@ -177,7 +180,7 @@ interface ModalDialogOwnProps {
   confirmButtonLabel?: string;
   cancelButton?: ModalButtonProps;
   cancelButtonLabel?: string;
-  cssStyle?: FlattenSimpleInterpolation | string;
+  cssStyle?: CssStyleType | string;
   style?: React.CSSProperties;
   theme: any;
   children?: ReactNode;
@@ -190,8 +193,12 @@ export class ModalDialog extends Component<ModalDialogProps> {
   static defaultProps = {
     footer: false,
     close: true,
-    onConfirm: (): void => {},
-    onCancel: (): void => {},
+    onConfirm: () => {
+      return;
+    },
+    onCancel: () => {
+      return;
+    },
     cancelButton: defaultCancelButton,
     confirmButton: defaultConfirmButton,
     cssStyle: []
@@ -201,8 +208,9 @@ export class ModalDialog extends Component<ModalDialogProps> {
     const {props} = this;
     return (
       <Modal
-        className={this.props.className}
+        className={props.className}
         {...props}
+        testId={props['data-testid']}
         ariaHideApp={false}
         style={{
           overlay: {
@@ -216,7 +224,7 @@ export class ModalDialog extends Component<ModalDialogProps> {
         <ModalContentWrapper className="modal--wrapper" cssStyle={props.cssStyle}>
           {props.close && (
             <CloseButton className="modal--close" onClick={props.onCancel}>
-              <Delete height="14px" />
+              <Delete height="18px" />
             </CloseButton>
           )}
           <div>
@@ -247,6 +255,7 @@ const StyledModal = styled(ModalDialog)`
   transition: ${props => props.theme.transition};
   padding-left: 40px;
   padding-right: 40px;
+  outline: none;
 
   ${media.portable`
     padding-left: 24px;
@@ -258,7 +267,7 @@ const StyledModal = styled(ModalDialog)`
     padding-right: 0;
   `};
 
-  :focus {
+  &:focus {
     outline: 0;
   }
 `;

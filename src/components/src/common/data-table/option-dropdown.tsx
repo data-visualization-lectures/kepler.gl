@@ -5,7 +5,13 @@ import React, {useCallback, useState} from 'react';
 import styled from 'styled-components';
 import Portaled from '../portaled';
 import DropdownList from '../item-selector/dropdown-list';
-import {SORT_ORDER, TABLE_OPTION, TABLE_OPTION_LIST, TooltipFormat} from '@kepler.gl/constants';
+import {
+  SORT_ORDER,
+  TABLE_OPTION,
+  TABLE_OPTION_LIST,
+  TooltipFormat,
+  TableOption
+} from '@kepler.gl/constants';
 import {getFieldFormatLabels} from '@kepler.gl/utils';
 import {ColMeta} from '@kepler.gl/types';
 import {ArrowDown, ArrowUp, Clipboard, Pin, Cancel, Hash} from '../icons';
@@ -64,7 +70,7 @@ export type FormatterDropdownProps = {
   top: number;
   isOpened: boolean;
   displayFormat?: string;
-  setDisplayFormat: (displayFormat: TooltipFormat) => void;
+  setDisplayFormat?: (displayFormat: TooltipFormat) => void;
   onClose: () => void;
   formatLabels: TooltipFormat[];
 };
@@ -84,8 +90,8 @@ export const FormatterDropdown: React.FC<FormatterDropdownProps> = (
   const selectionIndex = formatLabels.findIndex(label => label.format === displayFormat);
 
   const onSelectDisplayFormat = useCallback(
-    (result, e) => {
-      setDisplayFormat(result);
+    result => {
+      setDisplayFormat?.(result);
       onClose();
     },
     [setDisplayFormat, onClose]
@@ -97,7 +103,7 @@ export const FormatterDropdown: React.FC<FormatterDropdownProps> = (
         <DropdownList
           options={formatLabels}
           selectionIndex={selectionIndex}
-          displayOption={({label}) => label}
+          displayOption={option => (option as TooltipFormat).label}
           onOptionSelected={onSelectDisplayFormat}
           light
         />
@@ -111,10 +117,10 @@ export interface OptionDropdownProps {
   column: string;
   colMeta: ColMeta;
   toggleMoreOptions: (column: string) => void;
-  sortTableColumn: (sort: string) => void;
+  sortTableColumn?: (sort: string) => void;
   pinTableColumn: () => void;
   copyTableColumn: () => void;
-  setDisplayFormat: (displayFormat: any) => void;
+  setDisplayFormat?: (displayFormat: any) => void;
   sortMode?: string;
   isSorted?: string;
   isPinned?: boolean;
@@ -132,17 +138,17 @@ const OptionDropdown = (props: OptionDropdownProps) => {
     setDisplayFormat
   } = props;
   const [showFormatter, setShowFormatter] = useState(false);
-  const onOptionSelected = useCallback(
+  const onOptionSelected: (v: TableOption) => void = useCallback(
     ({value}) => {
       switch (value) {
         case TABLE_OPTION.SORT_ASC:
-          sortTableColumn(SORT_ORDER.ASCENDING);
+          sortTableColumn?.(SORT_ORDER.ASCENDING);
           break;
         case TABLE_OPTION.SORT_DES:
-          sortTableColumn(SORT_ORDER.DESCENDING);
+          sortTableColumn?.(SORT_ORDER.DESCENDING);
           break;
         case TABLE_OPTION.UNSORT:
-          sortTableColumn(SORT_ORDER.UNSORT);
+          sortTableColumn?.(SORT_ORDER.UNSORT);
           break;
         case TABLE_OPTION.PIN:
           pinTableColumn();
@@ -194,7 +200,7 @@ const OptionDropdown = (props: OptionDropdownProps) => {
     <Portaled right={120} top={20} isOpened={isOpened} onClose={onClose}>
       <StyledOptionsDropdown className="more-options">
         <DropdownList
-          displayOption={d => d.display}
+          displayOption={d => (d as TableOption).display}
           options={options}
           customListItemComponent={ListItem}
           onOptionSelected={onOptionSelected}

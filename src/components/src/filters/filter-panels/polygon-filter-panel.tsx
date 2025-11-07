@@ -10,7 +10,7 @@ import {EyeSeen, EyeUnseen} from '../../common/icons';
 import FilterPanelHeaderFactory from '../../side-panel/filter-panel/filter-panel-header';
 import {StyledFilterPanel} from '../components';
 
-import get from 'lodash.get';
+import get from 'lodash/get';
 import {PolygonFilterPanelComponent} from './types';
 import {KeplerTable} from '@kepler.gl/table';
 
@@ -27,10 +27,10 @@ function PolygonFilterPanelFactory(
 ) {
   const PolygonFilterPanel: PolygonFilterPanelComponent = React.memo(
     ({idx, datasets, layers, filter, removeFilter, setFilter, toggleFilterFeature}) => {
-      const filterDatasets: KeplerTable[] = useMemo(() => filter.dataId.map(d => datasets[d]), [
-        filter,
-        datasets
-      ]);
+      const filterDatasets: KeplerTable[] = useMemo(
+        () => filter.dataId.map(d => datasets[d]),
+        [filter, datasets]
+      );
 
       const onSetLayers = useCallback(value => setFilter(idx, 'layerId', value), [setFilter, idx]);
 

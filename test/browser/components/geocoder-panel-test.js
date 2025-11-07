@@ -12,7 +12,7 @@ import {cmpDatasetData, cmpObjectKeys} from '../../helpers/comparison-utils';
 import {InitialState} from 'test/helpers/mock-state';
 
 const GeocoderPanel = appInjector.get(GeocoderPanelFactory);
-const MAPBOX_TOKEN = process.env.MapboxAccessToken;
+const MAPBOX_TOKEN = 'pk.eyJ1Ijoi.d9YD6z';
 
 test('GeocoderPanel - render', t => {
   const enabled = true;
@@ -88,7 +88,6 @@ test('GeocoderPanel - render', t => {
           ],
           rows: [[55, 1, 'place', 'mock']]
         },
-        id: 'geocoder_dataset',
         info: {
           hidden: true,
           id: 'geocoder_dataset',
@@ -148,11 +147,13 @@ test('GeocoderPanel - render', t => {
   }, 'Should render');
 
   t.equal(wrapper.find(GeocoderPanel).length, 1, 'Should display 1 GeoCoderPanel');
-  t.equal(wrapper.find('Geocoder').length, 0, 'Should display 0 Geocoder because of invalid key');
+  t.equal(wrapper.find('GeoCoder').length, 1, 'Should display 1 Geocoder');
 
-  const instance = wrapper.find(GeocoderPanel).instance();
+  const geoCoderInstance = wrapper.find('GeoCoder');
+  const onSelected = geoCoderInstance.props().onSelected;
+  const onDeleteMarker = geoCoderInstance.props().onDeleteMarker;
 
-  instance.onSelected(null, mockGeoItem);
+  onSelected(null, mockGeoItem);
   t.deepEqual(
     removeDataset.args,
     [['geocoder_dataset']],
@@ -168,7 +169,7 @@ test('GeocoderPanel - render', t => {
   const actualDatasets = updateVisData.args[0][0];
   const mockDatasets = mockPayload[0];
 
-  mockDatasets.forEach((mockDataset, index) => {
+  mockDatasets.forEach(mockDataset => {
     const {data: mockDatasetData, ...restMockDataset} = mockDataset;
     const {data: actualDatasetData, ...restActualDataset} = actualDatasets[0];
     cmpDatasetData(t, mockDatasetData, actualDatasetData, mockDataset.id);
@@ -189,33 +190,26 @@ test('GeocoderPanel - render', t => {
 
   t.deepEqual(
     {latitude: newVP.latitude, longitude: newVP.longitude, zoom: newVP.zoom},
-    {latitude: 57.5, longitude: 1.5, zoom: 4},
+    {latitude: 57.5, longitude: 1.5, zoom: 4.307606395110668},
     'Should call updateMap action on onSelected w/ new viewport'
   );
 
   t.ok(newVP.transitionInterpolator, 'Should call updateMap action with transitionInterpolator');
 
-  instance.onSelected(null, mockGeoItemWithOutBbox);
+  onSelected(null, mockGeoItemWithOutBbox);
 
   const newVP2 = updateMap.args[1][0];
   t.deepEqual(
     {latitude: newVP2.latitude, longitude: newVP2.longitude, zoom: newVP2.zoom},
-    {latitude: 55, longitude: 1, zoom: 11},
+    {latitude: 55, longitude: 1, zoom: 11.655698543267773},
     'Should call updateMapaction on onSelected w/o bbox'
   );
 
-  instance.removeMarker();
+  onDeleteMarker();
   t.deepEqual(
     removeDataset.args[1],
     ['geocoder_dataset'],
     'Should be dispatching removeDataset action on removeMarker'
-  );
-
-  instance.removeGeocoderDataset();
-  t.deepEqual(
-    removeDataset.args[2],
-    ['geocoder_dataset'],
-    'Should be dispatching removeDataset action on removeGeocoderDataset'
   );
 
   t.end();
@@ -224,8 +218,14 @@ test('GeocoderPanel - render', t => {
 test('Geocoder -> testForCoordinates', t => {
   t.deepEqual(
     testForCoordinates('21.22,-138.0'),
-    [true, 21.22, -138.0],
+    [true, -138.0, 21.22],
     'should recognize valid coordinates'
+  );
+
+  t.deepEqual(
+    testForCoordinates(' -21.122, -123.4321 '),
+    [true, -123.4321, -21.122],
+    'should recognize valid coordinates and trim spaces, and a whitespace after the comma'
   );
 
   t.deepEqual(
@@ -237,13 +237,20 @@ test('Geocoder -> testForCoordinates', t => {
   t.deepEqual(
     testForCoordinates('91,123'),
     [false, '91,123'],
-    'should recognize invalid coordinates'
+    'should recognize invalid integer coordinates'
   );
 
   t.deepEqual(
-    testForCoordinates('-21.122, -123.4321'),
-    [true, -21.122, -123.4321],
-    'should recognize valid coordinates'
+    testForCoordinates('91.0,-138.0'),
+    [false, '91.0,-138.0'],
+    'should recognize out of bounds latitude'
   );
+
+  t.deepEqual(
+    testForCoordinates('50.0,200.0'),
+    [false, '50.0,200.0'],
+    'should recognize out of bounds longitude'
+  );
+
   t.end();
 });

@@ -6,9 +6,9 @@ import {act} from 'react-dom/test-utils';
 import test from 'tape-catch';
 import global from 'global';
 import sinon from 'sinon';
-import flatten from 'lodash.flattendeep';
+import flatten from 'lodash/flattenDeep';
 import {IntlWrapper, mountWithTheme} from 'test/helpers/component-utils';
-import CloneDeep from 'lodash.clonedeep';
+import CloneDeep from 'lodash/cloneDeep';
 import {VisStateActions} from '@kepler.gl/actions';
 import {visStateReducer} from '@kepler.gl/reducers';
 
@@ -30,6 +30,7 @@ import {
 import {testFields, testAllData} from 'test/fixtures/test-csv-data';
 import {geoStyleFields, geoStyleRows} from 'test/fixtures/geojson';
 import {StateWFiles, testCsvDataId, testGeoJsonDataId} from 'test/helpers/mock-state';
+import {STYLED_COMPONENTS_DUPLICATED_ENTRIES} from '../../../helpers/utils';
 
 import {createDataContainer, getFieldFormatLabels} from '@kepler.gl/utils';
 
@@ -153,10 +154,7 @@ test('Components -> DataTableConfig', t => {
   const numberFormatConfigInput = wrapper.find(NumberFormatConfig);
   t.equal(numberFormatConfigInput.length, 5, 'should render 5 NumberFormatConfig');
 
-  numberFormatConfigInput
-    .at(0)
-    .find(InputLight)
-    .simulate('click');
+  numberFormatConfigInput.at(0).find(InputLight).simulate('click');
 
   const formatDropdown = wrapper.find(DropdownList);
   t.equal(formatDropdown.length, 1, 'should render 1 format dropdown');
@@ -169,27 +167,15 @@ test('Components -> DataTableConfig', t => {
     'should render integer type formats'
   );
 
-  numberFormatConfigInput
-    .at(1)
-    .find(InputLight)
-    .simulate('click');
+  numberFormatConfigInput.at(1).find(InputLight).simulate('click');
 
-  const floatDisplayOptions = wrapper
-    .find(DropdownList)
-    .at(1)
-    .props().options;
+  const floatDisplayOptions = wrapper.find(DropdownList).at(1).props().options;
 
   t.deepEqual(floatDisplayOptions, getFieldFormatLabels('real'), 'should render real type formats');
 
-  numberFormatConfigInput
-    .at(2)
-    .find(InputLight)
-    .simulate('click');
+  numberFormatConfigInput.at(2).find(InputLight).simulate('click');
 
-  const timeDisplayOptions = wrapper
-    .find(DropdownList)
-    .at(2)
-    .props().options;
+  const timeDisplayOptions = wrapper.find(DropdownList).at(2).props().options;
 
   t.deepEqual(
     timeDisplayOptions,
@@ -197,15 +183,9 @@ test('Components -> DataTableConfig', t => {
     'should render time type formats'
   );
 
-  numberFormatConfigInput
-    .at(3)
-    .find(InputLight)
-    .simulate('click');
+  numberFormatConfigInput.at(3).find(InputLight).simulate('click');
 
-  const dateDisplayOptions = wrapper
-    .find(DropdownList)
-    .at(3)
-    .props().options;
+  const dateDisplayOptions = wrapper.find(DropdownList).at(3).props().options;
 
   t.deepEqual(dateDisplayOptions, getFieldFormatLabels('date'), 'should render date type formats');
 
@@ -227,10 +207,7 @@ test('Components -> DataTableModal.render: csv 1', t => {
   t.equal(wrapper.find(DatasetModalTab).length, 2, 'should render 1 DatasetModalTab');
   t.equal(wrapper.find(DataTable).length, 1, 'should render 1 DataTable');
 
-  const props = wrapper
-    .find(DataTable)
-    .at(0)
-    .props();
+  const props = wrapper.find(DataTable).at(0).props();
   const expectedColumns = [
     'gps_data.utc_timestamp',
     'gps_data.lat',
@@ -299,45 +276,24 @@ test('Components -> DataTableModal -> click tab', t => {
   );
 
   t.equal(wrapper.find(DatasetModalTab).length, 2, 'should render 2 DatasetModalTab');
+  t.equal(wrapper.find(DatasetModalTab).at(0).prop('active'), true, 'prop 0 active should be true');
   t.equal(
-    wrapper
-      .find(DatasetModalTab)
-      .at(0)
-      .prop('active'),
-    true,
-    'prop 0 active should be true'
-  );
-  t.equal(
-    wrapper
-      .find(DatasetModalTab)
-      .at(0)
-      .find('.dataset-name')
-      .text(),
+    wrapper.find(DatasetModalTab).at(0).find('.dataset-name').text(),
     'hello.csv',
     'dataset name should be correct'
   );
   t.equal(
-    wrapper
-      .find(DatasetModalTab)
-      .at(1)
-      .prop('active'),
+    wrapper.find(DatasetModalTab).at(1).prop('active'),
     false,
     'prop 1 active should be true'
   );
   t.equal(
-    wrapper
-      .find(DatasetModalTab)
-      .at(1)
-      .find('.dataset-name')
-      .text(),
+    wrapper.find(DatasetModalTab).at(1).find('.dataset-name').text(),
     'zip.geojson',
     'dataset name should be correct'
   );
 
-  wrapper
-    .find(DatasetModalTab)
-    .at(1)
-    .simulate('click');
+  wrapper.find(DatasetModalTab).at(1).simulate('click');
   t.ok(showDatasetTable.calledWith(testGeoJsonDataId));
 
   t.end();
@@ -349,10 +305,7 @@ test('Components -> DataTableModal -> render DataTable: csv 1', t => {
   );
   t.equal(wrapper.find(DataTable).length, 1, 'should render 1 DataTable');
 
-  const props = wrapper
-    .find(DataTable)
-    .at(0)
-    .props();
+  const props = wrapper.find(DataTable).at(0).props();
 
   // mock cellSizeCache, width and height
   const enriched = {
@@ -378,7 +331,7 @@ test('Components -> DataTableModal -> render DataTable: csv 1', t => {
 
   t.equal(
     wrapper2.find('.header-cell').length,
-    testFields.length * 3,
+    testFields.length * STYLED_COMPONENTS_DUPLICATED_ENTRIES,
     `should render ${testFields.length} headers`
   );
 
@@ -486,10 +439,7 @@ test('Components -> DataTableModal -> render DataTable: sort, pin and display fo
     <DataTableModal datasets={nextState2.datasets} dataId={testCsvDataId} />
   );
 
-  const props = wrapper
-    .find(DataTable)
-    .at(0)
-    .props();
+  const props = wrapper.find(DataTable).at(0).props();
 
   // mock cellSizeCache, width and height
   const enriched = {
@@ -526,23 +476,17 @@ test('Components -> DataTableModal -> render DataTable: sort, pin and display fo
 
   t.equal(
     wrapper2.find('.header-cell').length,
-    testFields.length * 3,
+    testFields.length * STYLED_COMPONENTS_DUPLICATED_ENTRIES, // number of duplicates create by styled-components
     `should render ${testFields.length} headers`
   );
 
   t.ok(
-    wrapper2
-      .find('.header-cell')
-      .at(0)
-      .hasClass('pinned-header-cell'),
+    wrapper2.find('.header-cell').at(0).hasClass('pinned-header-cell'),
     'should assign pinned-header-cell class'
   );
 
   t.ok(
-    wrapper2
-      .find('.header-cell')
-      .at(0)
-      .hasClass('first-cell'),
+    wrapper2.find('.header-cell').at(0).hasClass('first-cell'),
     'should assign first-cell class'
   );
 
@@ -550,7 +494,7 @@ test('Components -> DataTableModal -> render DataTable: sort, pin and display fo
     t.equal(
       wrapper2
         .find('.header-cell')
-        .at(i * 3)
+        .at(i * STYLED_COMPONENTS_DUPLICATED_ENTRIES)
         .find('.col-name__name')
         .text(),
       expectedHeaders[i],
@@ -649,10 +593,7 @@ test('Components -> cellSize -> renderedSize', t => {
     />
   );
 
-  const props = wrapper
-    .find(DataTable)
-    .at(0)
-    .props();
+  const props = wrapper.find(DataTable).at(0).props();
 
   const expected = {
     _geojson: {row: 500, header: 186},
@@ -691,10 +632,7 @@ test('Components -> DataTableModal.render: csv 2', t => {
       dataId="smoothie"
     />
   );
-  const props = wrapper
-    .find(DataTable)
-    .at(0)
-    .props();
+  const props = wrapper.find(DataTable).at(0).props();
   const cellSizeCache = {
     _geojson: {row: 400, header: 91},
     fillColor: {row: 75, header: 90},
@@ -733,7 +671,11 @@ test('Components -> DataTableModal.render: csv 2', t => {
   });
   wrapper2.update();
 
-  t.equal(wrapper2.find('.header-cell').length, 21, `should render 7 header cells`);
+  t.equal(
+    wrapper2.find('.header-cell').length,
+    7 * STYLED_COMPONENTS_DUPLICATED_ENTRIES,
+    `should render 7 header cells`
+  );
 
   // test header cell
   const expectedHeaders = [
@@ -748,7 +690,7 @@ test('Components -> DataTableModal.render: csv 2', t => {
 
   expectedHeaders.forEach((name, index) => {
     const header = wrapper2.find(`.header-cell.column-${index}`);
-    t.equal(header.length, 3, 'should render 1 header');
+    t.equal(header.length, STYLED_COMPONENTS_DUPLICATED_ENTRIES, 'should render 1 header');
 
     if (index < 6) {
       const cellText = header.find('.col-name__name').text();
@@ -759,7 +701,7 @@ test('Components -> DataTableModal.render: csv 2', t => {
       t.equal(header.find(OptionDropdown).length, 1, 'should render OptionDropdown');
     } else {
       // if ghost cell
-      t.equal(header.at(2).text(), '', 'cell should be empty');
+      t.equal(header.at(1).text(), '', 'cell should be empty');
     }
   });
 

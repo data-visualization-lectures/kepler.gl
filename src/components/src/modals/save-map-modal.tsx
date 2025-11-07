@@ -7,12 +7,7 @@ import ImageModalContainer, {ImageModalContainerProps} from './image-modal-conta
 import {FlexContainer} from '../common/flex-container';
 import StatusPanel, {UploadAnimation} from './status-panel';
 import {ProviderSelect} from './cloud-components/provider-select';
-import {
-  MAP_THUMBNAIL_DIMENSION,
-  MAP_INFO_CHARACTER,
-  ExportImage,
-  dataTestIds
-} from '@kepler.gl/constants';
+import {MAP_THUMBNAIL_DIMENSION, MAP_INFO_CHARACTER, dataTestIds} from '@kepler.gl/constants';
 
 import {
   StyledModalContent,
@@ -24,7 +19,7 @@ import {
 } from '../common/styled-components';
 import ImagePreview from '../common/image-preview';
 import {FormattedMessage} from '@kepler.gl/localization';
-import {MapInfo} from '@kepler.gl/types';
+import {MapInfo, ExportImage} from '@kepler.gl/types';
 import {Provider} from '@kepler.gl/cloud-providers';
 import {setMapInfo, cleanupExportImage as cleanupExportImageAction} from '@kepler.gl/actions';
 import {ModalFooter} from '../common/modal';
@@ -61,7 +56,13 @@ const StyledSaveMapModal = styled.div.attrs({
   }
 `;
 
-const nop = _ => {};
+const StyledCompactExportSection = styled(StyledExportSection)`
+  margin: 5px 0;
+`;
+
+const nop = () => {
+  return;
+};
 const TEXT_AREA_LIGHT_STYLE = {resize: 'none'};
 
 type CharacterLimits = {
@@ -194,7 +195,7 @@ function SaveMapModalFactory() {
       if (provider) {
         onConfirm(provider);
       }
-    }, [provider]);
+    }, [onConfirm, provider]);
 
     return (
       <ImageModalContainer
@@ -222,7 +223,7 @@ function SaveMapModalFactory() {
                     </div>
                   </StyledExportSection>
                 ) : null}
-                <StyledExportSection>
+                <StyledCompactExportSection>
                   <div className="description image-preview-panel">
                     <ImagePreview
                       exportImage={exportImage}
@@ -244,7 +245,7 @@ function SaveMapModalFactory() {
                       onChangeInput={onChangeInput}
                     />
                   )}
-                </StyledExportSection>
+                </StyledCompactExportSection>
               </>
             )}
             {providerError ? (

@@ -8,14 +8,14 @@ import {BrushBehavior, brushX} from 'd3-brush';
 import {normalizeSliderValue} from '@kepler.gl/utils';
 
 interface StyledGProps {
-  isRanged?: boolean;
+  $isRanged?: boolean;
 }
 
 const StyledG = styled.g<StyledGProps>`
   .selection {
     stroke: none;
-    fill: ${props => (props.isRanged ? props.theme.rangeBrushBgd : props.theme.BLUE2)};
-    fill-opacity: ${props => (props.isRanged ? 0.3 : 1)};
+    fill: ${props => (props.$isRanged ? props.theme.rangeBrushBgd : props.theme.BLUE2)};
+    fill-opacity: ${props => (props.$isRanged ? 0.3 : 1)};
   }
   .handle {
     fill: ${props => props.theme.BLUE2};
@@ -38,8 +38,9 @@ const getHandlePath = (props: RangeBrushProps) => {
     const h = 39;
     const w = 4.5;
     const y = (props.height - h) / 2;
-    return `M${0.5 * x},${y}c${2.5 * x},0,${w * x},2,${w * x},${w}v${h - w * 2}c0,2.5,${-2 *
-      x},${w},${-w * x},${w}V${y}z`;
+    return `M${0.5 * x},${y}c${2.5 * x},0,${w * x},2,${w * x},${w}v${h - w * 2}c0,2.5,${
+      -2 * x
+    },${w},${-w * x},${w}V${y}z`;
   };
 };
 
@@ -69,8 +70,8 @@ function RangeBrushFactory(): React.ComponentType<RangeBrushProps> {
 
     rootContainer = createRef<SVGGElement>();
 
-    brushing: boolean = false;
-    moving: boolean = false;
+    brushing = false;
+    moving = false;
 
     root = this.rootContainer.current ? select(this.rootContainer.current) : undefined;
     brush: BrushBehavior<any> | undefined;
@@ -155,8 +156,12 @@ function RangeBrushFactory(): React.ComponentType<RangeBrushProps> {
       } = this.props;
       const [prevVal0, prevVal1] = prevProps.value;
 
-      if (prevProps.width !== width) {
-        // width change should not trigger this._brushed
+      if (
+        prevProps.width !== width ||
+        prevProps.range[0] !== this.props.range[0] ||
+        prevProps.range[1] !== this.props.range[1]
+      ) {
+        // dimension change should not trigger this._brushed
         this.moving = true;
         if (this.brush) this.root?.call(this.brush);
         this._move(val0, val1);
@@ -180,7 +185,7 @@ function RangeBrushFactory(): React.ComponentType<RangeBrushProps> {
       this._brushed({sourceEvent: {}, selection});
     }
 
-    _move(val0: number = 0, val1: number = 0) {
+    _move(val0 = 0, val1 = 0) {
       const {
         range: [min, max],
         width,
@@ -218,8 +223,9 @@ function RangeBrushFactory(): React.ComponentType<RangeBrushProps> {
       const invert = (x: number) => (x * (max - min)) / width + min;
       let d0 = invert(sel0);
       let d1 = invert(sel1);
-
-      d0 = normalizeSliderValue(d0, min, step, marks);
+      // this makes sure if points are right at the beginning of the domains are displayed correctly
+      // the problem here is bisectLeftx
+      d0 = d0 === min ? d0 : normalizeSliderValue(d0, min, step, marks);
       d1 = normalizeSliderValue(d1, min, step, marks);
 
       if (isRanged) this._move(d0, d1);
@@ -229,7 +235,7 @@ function RangeBrushFactory(): React.ComponentType<RangeBrushProps> {
       else this._onBrush(right ? d1 : d0);
     };
 
-    _onBrush(val0: number = 0, val1: number = 0) {
+    _onBrush(val0 = 0, val1 = 0) {
       const {
         isRanged,
         value: [currentVal0, currentVal1]
@@ -249,7 +255,7 @@ function RangeBrushFactory(): React.ComponentType<RangeBrushProps> {
     render() {
       const {isRanged} = this.props;
       return (
-        <StyledG className="kg-range-slider__brush" isRanged={isRanged} ref={this.rootContainer} />
+        <StyledG className="kg-range-slider__brush" $isRanged={isRanged} ref={this.rootContainer} />
       );
     }
   }

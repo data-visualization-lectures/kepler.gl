@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import React, {useCallback, PropsWithChildren, ElementType, CSSProperties, ReactNode} from 'react';
-import styled from 'styled-components';
 import classnames from 'classnames';
+import React, {useCallback, PropsWithChildren, ElementType, CSSProperties, ReactNode} from 'react';
+import styled, {IStyledComponent} from 'styled-components';
 import {ArrowRight} from './icons';
 import Checkbox from './switch';
+import {BaseComponentProps} from '../types';
+import TippyTooltip from './tippy-tooltip';
 
 export type ActionPanelProps = PropsWithChildren<{
   color?: string;
   className?: string;
-  direction?: string;
+  direction?: CSSProperties['direction'];
 }>;
 
 export type ActionPanelItemProps = PropsWithChildren<{
@@ -21,12 +23,10 @@ export type ActionPanelItemProps = PropsWithChildren<{
   onClick?: () => void;
   isSelection?: boolean;
   isActive?: boolean;
+  isDisabled?: boolean;
+  tooltipText?: string | null;
   style?: CSSProperties;
 }>;
-
-export interface DirectionProp {
-  direction: string;
-}
 
 const StyledItem = styled.div`
   display: flex;
@@ -41,8 +41,7 @@ const StyledItem = styled.div`
   max-width: 200px;
   position: relative;
 
-  ${props => (props.color ? `border-left: 3px solid rgb(${props.color});` : '')} :hover {
-    cursor: pointer;
+  ${props => (props.color ? `border-left: 3px solid rgb(${props.color});` : '')} &:hover {
     color: ${props => props.theme.textColorHl};
     .nested-group {
       display: block;
@@ -112,7 +111,6 @@ const renderChildren = (child: ReactNode, index: number) =>
     className: classnames('action-panel-item', child.props.className)
   });
 
-/** @type {typeof import('./action-panel').ActionPanelItem} */
 export const ActionPanelItem = React.memo(
   ({
     children,
@@ -123,19 +121,32 @@ export const ActionPanelItem = React.memo(
     onClick,
     isSelection,
     isActive,
+    isDisabled,
+    tooltipText,
     style
   }: ActionPanelItemProps) => {
     const onClickCallback = useCallback(
       event => {
+        if (isDisabled) {
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
         onClick?.();
       },
-      [onClick]
+      [onClick, isDisabled]
     );
 
-    return (
-      <StyledItem className={className} onClick={onClickCallback} color={color} style={style}>
+    const content = (
+      <StyledItem
+        className={className}
+        onClick={onClickCallback}
+        color={color}
+        style={{
+          ...(isDisabled ? {cursor: 'not-allowed', opacity: 0.5} : {cursor: 'pointer'}),
+          ...style
+        }}
+      >
         {Icon ? (
           <div className="icon">
             <Icon height="16px" />
@@ -145,6 +156,7 @@ export const ActionPanelItem = React.memo(
           <StyledCheckedbox
             type="checkbox"
             checked={Boolean(isActive)}
+            disabled={Boolean(isDisabled)}
             id={`switch-${label}`}
             secondary
             label={label}
@@ -157,17 +169,31 @@ export const ActionPanelItem = React.memo(
             <div className="label-icon">
               <ArrowRight height="16px" />
             </div>
-            <div className="nested-group">{React.Children.map(children, renderChildren)}</div>
+            {!isDisabled ? (
+              <div className="nested-group">{React.Children.map(children, renderChildren)}</div>
+            ) : null}
           </div>
         ) : null}
       </StyledItem>
+    );
+    return tooltipText ? (
+      <TippyTooltip render={() => <div>{tooltipText}</div>}>{content}</TippyTooltip>
+    ) : (
+      content
     );
   }
 );
 
 ActionPanelItem.displayName = 'ActionPanelItem';
 
-const StyledActionPanel = styled.div<DirectionProp>`
+export type StyledActionPanelProps = BaseComponentProps & {
+  direction?: string;
+};
+
+const StyledActionPanel: IStyledComponent<
+  'web',
+  StyledActionPanelProps
+> = styled.div<StyledActionPanelProps>`
   display: flex;
   flex-direction: ${props => props.direction};
   box-shadow: ${props => props.theme.dropdownListShadow};
@@ -185,7 +211,7 @@ const StyledActionPanel = styled.div<DirectionProp>`
 `;
 
 // React compound element https://medium.com/@Dane_s/react-js-compound-components-a6e54b5c9992
-/** @type {typeof import('./action-panel').ActionPanel} */
+// @ts-expect-error looks like not valid default value for direction prop
 const ActionPanel = ({children, className, direction = 'column'}: ActionPanelProps) => (
   <StyledActionPanel className={className} direction={direction}>
     {React.Children.map(children, renderChildren)}

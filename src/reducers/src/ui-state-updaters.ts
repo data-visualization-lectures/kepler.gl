@@ -11,8 +11,7 @@ import {
   EXPORT_IMG_RATIOS,
   EXPORT_MAP_FORMATS,
   RESOLUTIONS,
-  MAP_CONTROLS,
-  ExportImage
+  MAP_CONTROLS
 } from '@kepler.gl/constants';
 import {LOCALE_CODES} from '@kepler.gl/localization';
 import {createNotification, errorNotification, calculateExportImageSize} from '@kepler.gl/utils';
@@ -29,6 +28,7 @@ import {
   ExportHtml,
   ExportJson,
   ExportMap,
+  ExportImage,
   MapControlItem,
   MapControls,
   UiState
@@ -44,7 +44,7 @@ export const DEFAULT_MODAL = ADD_DATA_ID;
  * @public
  * @example
  *
- * import keplerGlReducer, {uiStateUpdaters} from 'kepler.gl/reducers';
+ * import keplerGlReducer, {uiStateUpdaters} from '@kepler.gl/reducers';
  * // Root Reducer
  * const reducers = combineReducers({
  *  keplerGl: keplerGlReducer,
@@ -73,10 +73,10 @@ export const DEFAULT_MODAL = ADD_DATA_ID;
  *
  * export default composedReducer;
  */
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const uiStateUpdaters = null;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 const DEFAULT_MAP_CONTROLS_FEATURES: MapControlItem = {
   show: true,
@@ -86,6 +86,10 @@ const DEFAULT_MAP_CONTROLS_FEATURES: MapControlItem = {
   activeMapIndex: 0
 };
 
+const DEFAULT_MAP_LEGEND_CONTROL = {
+  ...DEFAULT_MAP_CONTROLS_FEATURES,
+  disableEdit: false
+};
 /**
  * A list of map control visibility and whether is it active.
  * @memberof uiStateUpdaters
@@ -98,12 +102,15 @@ const DEFAULT_MAP_CONTROLS_FEATURES: MapControlItem = {
  * @property mapLocale Default: `{show: false, active: false}`
  * @public
  */
-export const DEFAULT_MAP_CONTROLS: MapControls = (Object.keys(MAP_CONTROLS) as Array<
-  keyof typeof MAP_CONTROLS
->).reduce(
+export const DEFAULT_MAP_CONTROLS: MapControls = (
+  Object.keys(MAP_CONTROLS) as Array<keyof typeof MAP_CONTROLS>
+).reduce(
   (final, current) => ({
     ...final,
-    [current]: DEFAULT_MAP_CONTROLS_FEATURES
+    [current]:
+      current === MAP_CONTROLS.mapLegend
+        ? DEFAULT_MAP_LEGEND_CONTROL
+        : DEFAULT_MAP_CONTROLS_FEATURES
   }),
   {} as MapControls
 );
@@ -261,7 +268,7 @@ export const INITIAL_UI_STATE: UiState = {
 export const initUiStateUpdater = (
   state: UiState,
   action: {
-    type?: typeof ActionTypes['INIT'];
+    type?: (typeof ActionTypes)['INIT'];
     payload: KeplerGlInitPayload;
   }
 ): UiState => ({
@@ -361,17 +368,66 @@ export const toggleSidePanelCloseButtonUpdater = (
 export const toggleMapControlUpdater = (
   state: UiState,
   {payload: {panelId, index = 0}}: UIStateActions.ToggleMapControlUpdaterAction
-): UiState => ({
-  ...state,
-  mapControls: {
-    ...state.mapControls,
-    [panelId]: {
-      ...state.mapControls[panelId],
-      active: !state.mapControls[panelId].active,
-      activeMapIndex: index
-    }
+): UiState => {
+  let updatedState = state;
+  // The effect panel and ai assistant panel can not be active at the same time
+  // so we need to deactivate the other panel when one is activated
+  const panelToDeactivate =
+    panelId === MAP_CONTROLS.effect
+      ? MAP_CONTROLS.aiAssistant
+      : panelId === MAP_CONTROLS.aiAssistant
+      ? MAP_CONTROLS.effect
+      : null;
+
+  // To to toggle the mapDraw and mapLocal dropdowns
+  // We have to deactivate the other active dropdown
+  const dropdownToDeactivate =
+    panelId === MAP_CONTROLS.mapDraw
+      ? MAP_CONTROLS.mapLocale
+      : panelId === MAP_CONTROLS.mapLocale
+      ? MAP_CONTROLS.mapDraw
+      : null;
+
+  // If we need to deactivate a competing panel and it's currently active
+  if (panelToDeactivate && state.mapControls[panelToDeactivate]?.active) {
+    updatedState = {
+      ...state,
+      mapControls: {
+        ...updatedState.mapControls,
+        [panelToDeactivate]: {
+          ...updatedState.mapControls[panelToDeactivate],
+          active: false
+        }
+      }
+    };
   }
-});
+
+  // If we need to deactivate a competing dropdown and it's currently active
+  if (dropdownToDeactivate && state.mapControls[dropdownToDeactivate]?.active) {
+    updatedState = {
+      ...state,
+      mapControls: {
+        ...updatedState.mapControls,
+        [dropdownToDeactivate]: {
+          ...updatedState.mapControls[dropdownToDeactivate],
+          active: false
+        }
+      }
+    };
+  }
+
+  return {
+    ...updatedState,
+    mapControls: {
+      ...updatedState.mapControls,
+      [panelId]: {
+        ...updatedState.mapControls[panelId],
+        active: !updatedState.mapControls[panelId].active,
+        activeMapIndex: index
+      }
+    }
+  };
+};
 
 /**
  * Toggle map control visibility
@@ -398,6 +454,33 @@ export const setMapControlVisibilityUpdater = (
         ...state.mapControls[panelId],
         show: Boolean(show)
       }
+    }
+  };
+};
+
+/**
+ * Toggle map control settings
+ * @memberof uiStateUpdaters
+ * @param state `uiState`
+ * @param action action
+ * @param action.payload map control panel id, one of the keys of: [`DEFAULT_MAP_CONTROLS`](#default_map_controls)
+ * @returns nextState
+ * @public
+ */
+export const setMapControlSettingsUpdater = (
+  state: UiState,
+  {payload: {panelId, settings}}: UIStateActions.setMapControlSettingsUpdaterAction
+): UiState => {
+  const mapControl = state.mapControls?.[panelId];
+  if (!mapControl) {
+    return state;
+  }
+
+  return {
+    ...state,
+    mapControls: {
+      ...state.mapControls,
+      [panelId]: {...mapControl, settings: {...mapControl.settings, ...settings}}
     }
   };
 };
@@ -458,14 +541,19 @@ export const setExportImageSettingUpdater = (
 export const setExportImageDataUriUpdater = (
   state: UiState,
   {payload: dataUri}: UIStateActions.SetExportImageDataUriUpdaterAction
-): UiState => ({
-  ...state,
-  exportImage: {
-    ...state.exportImage,
-    processing: false,
-    imageDataUri: dataUri
+): UiState => {
+  if (dataUri === state.exportImage.imageDataUri) {
+    return state;
   }
-});
+  return {
+    ...state,
+    exportImage: {
+      ...state.exportImage,
+      processing: false,
+      imageDataUri: dataUri
+    }
+  };
+};
 
 /**
  * @memberof uiStateUpdaters

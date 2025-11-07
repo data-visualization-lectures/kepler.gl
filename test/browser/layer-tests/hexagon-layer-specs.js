@@ -322,10 +322,13 @@ test('#HexagonLayer -> renderLayer', t => {
         Object.keys(expectedProps).forEach(key => {
           t.deepEqual(props[key], expectedProps[key], `should have correct props.${key}`);
         });
-
+        const expectedLayerDomain = {
+          domain: [1, 2],
+          aggregatedBins: {1: {i: 1, value: 2, counts: 2}, 2: {i: 2, value: 1, counts: 1}}
+        };
         t.deepEqual(
           spyLayerCallbacks.args[0][0],
-          [1, 2],
+          expectedLayerDomain,
           'should call onSetLayerDomain with correct domain'
         );
 
@@ -391,7 +394,7 @@ test('#HexagonLayer -> renderLayer', t => {
           onSetLayerDomain: spyLayerCallbacks
         }
       },
-      assert: (deckLayers, layer) => {
+      assert: deckLayers => {
         t.deepEqual(
           deckLayers.map(l => l.id),
           ['test_layer_1', 'test_layer_1-hexagon-cell'],
@@ -426,10 +429,13 @@ test('#HexagonLayer -> renderLayer', t => {
           {i: 2, value: 1, counts: 1},
           {i: 1, value: 2, counts: 2}
         ];
-
+        const expectedLayerDomain = {
+          domain: [7.13, 11],
+          aggregatedBins: {1: {i: 1, value: 7.13, counts: 2}, 2: {i: 2, value: 11, counts: 1}}
+        };
         t.deepEqual(
           spyLayerCallbacks.args[1][0],
-          [7.13, 11],
+          expectedLayerDomain,
           'should call onSetLayerDomain with correct domain'
         );
         t.deepEqual(
@@ -521,7 +527,7 @@ test('#HexagonLayer -> renderHover', t => {
       renderArgs: {
         objectHovered: testObjectHovered
       },
-      assert: (deckLayers, layer) => {
+      assert: deckLayers => {
         t.deepEqual(
           deckLayers.map(l => l.id),
           [

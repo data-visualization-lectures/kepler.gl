@@ -54,7 +54,7 @@ export type ActionHandlers<T extends {[k: string]: Handler}> = {
  * @example
  *
  * // app.js
- * import {addDataToMap} from 'kepler.gl/actions';
+ * import {addDataToMap} from '@kepler.gl/actions';
  *
  * const sampleTripData = {
  *  fields: [
@@ -105,9 +105,7 @@ export type ActionHandlers<T extends {[k: string]: Handler}> = {
  *   })
  * );
  */
-export const addDataToMap: (
-  data: AddDataToMapPayload
-) => {
+export const addDataToMap: (data: AddDataToMapPayload) => {
   type: typeof ActionTypes.ADD_DATA_TO_MAP;
   payload: AddDataToMapPayload;
 } = createAction(ActionTypes.ADD_DATA_TO_MAP, (data: AddDataToMapPayload) => ({payload: data}));
@@ -148,8 +146,8 @@ export type ReceiveMapConfigPayload = {
  * @param {boolean} options.autoCreateLayers whether to automatically create layers based on dataset columns `default: true`.
  * @public
  * @example
- * import {receiveMapConfig} from 'kepler.gl/actions';
- * import KeplerGlSchema from 'kepler.gl/schemas';
+ * import {receiveMapConfig} from '@kepler.gl/actions';
+ * import KeplerGlSchema from '@kepler.gl/schemas';
  *
  * const parsedConfig = KeplerGlSchema.parseSavedConfig(config);
  * this.props.dispatch(receiveMapConfig(parsedConfig));
@@ -187,9 +185,7 @@ export type KeplerGlInitPayload = {
  * @public
  */
 // @ts-expect-error
-export const keplerGlInit: (
-  options?: KeplerGlInitPayload
-) => {
+export const keplerGlInit: (options?: KeplerGlInitPayload) => {
   type: typeof ActionTypes.INIT;
   payload: KeplerGlInitPayload;
 } = createAction(ActionTypes.INIT, (payload: KeplerGlInitPayload) => ({payload}));
@@ -208,14 +204,12 @@ export type ReplaceDataInMapPayload = {
 /**
  * Initialize kepler.gl reducer. It is used to pass in `mapboxApiAccessToken` to `mapStyle` reducer.
  * @memberof main
- * @param {object} payload
+ * @param payload
  * @param payload.datasetToReplaceId - mapboxApiAccessToken to be saved to mapStyle reducer
  * @param payload.datasetToUse - mapboxApiUrl to be saved to mapStyle reducer.
  * @public
  */
-export const replaceDataInMap: (
-  payload: ReplaceDataInMapPayload
-) => {
+export const replaceDataInMap: (payload: ReplaceDataInMapPayload) => {
   type: typeof ActionTypes.REPLACE_DATA_IN_MAP;
   payload: ReplaceDataInMapPayload;
 } = createAction(ActionTypes.REPLACE_DATA_IN_MAP, (payload: ReplaceDataInMapPayload) => ({
@@ -230,7 +224,7 @@ export const replaceDataInMap: (
  * is listened by all subreducers,
  * @public
  */
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const main = null;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */

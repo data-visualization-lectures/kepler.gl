@@ -118,7 +118,7 @@ const StyledEffectPanelHeader = styled(StyledPanelHeader)`
     margin: 10px 10px 10px 5px;
   }
 
-  :hover {
+  &:hover {
     cursor: pointer;
     background-color: ${props => props.theme.panelBackgroundHover};
     .effect__drag-handle {
@@ -135,7 +135,7 @@ const HeaderActionSection = styled.div`
   height: 100%;
   align-items: stretch;
   right: 10px;
-  :hover {
+  &:hover {
     .effect-panel__header__actions__hidden {
       opacity: 1;
       background-color: ${props => props.theme.panelBackgroundHover};
@@ -155,7 +155,7 @@ const StyledPanelHeaderHiddenActions = styled.div.attrs({
   background-color: ${props =>
     props.isConfigActive ? props.theme.panelBackgroundHover : props.theme.panelBackground};
 
-  :hover {
+  &:hover {
     opacity: 1;
   }
 `;
@@ -165,7 +165,7 @@ const StyledDragHandle = styled.div`
   align-items: center;
   opacity: 0;
   z-index: 1000;
-  :hover {
+  &:hover {
     cursor: move;
     opacity: 1;
     color: ${props => props.theme.textColorHl};
@@ -220,7 +220,15 @@ export function EffectPanelHeaderActionSectionFactory(
             icon: actionIcons.enableConfig
           }
         ],
-      [actionItems, isEnabled, onRemoveEffect, onToggleEnabled, actionIcons]
+      [
+        actionItems,
+        actionIcons,
+        isEnabled,
+        isConfigActive,
+        onRemoveEffect,
+        onToggleEnabled,
+        onToggleEnableConfig
+      ]
     );
 
     return (
@@ -228,7 +236,7 @@ export function EffectPanelHeaderActionSectionFactory(
         <StyledPanelHeaderHiddenActions isConfigActive={isConfigActive}>
           {effectActionItems
             .filter((item: ActionItem) => Boolean(item.isHidden))
-            .map((item: ActionItem, i) => (
+            .map((item: ActionItem) => (
               <PanelHeaderAction
                 key={item.key}
                 className={`effect__${item.key}`}
@@ -243,7 +251,7 @@ export function EffectPanelHeaderActionSectionFactory(
         </StyledPanelHeaderHiddenActions>
         {effectActionItems
           .filter((item: ActionItem) => !item.isHidden)
-          .map((item: ActionItem, i) => (
+          .map((item: ActionItem) => (
             <PanelHeaderAction
               key={item.key}
               className={classnames(`effect__${item.key}`, item.classNames)}
@@ -289,7 +297,7 @@ function EffectPanelHeaderFactory(
   const EffectPanelHeader = (props: EffectPanelHeaderProps) => {
     const {
       isConfigActive,
-      isDragNDropEnabled,
+      isDragNDropEnabled = true,
       type,
       onToggleEnableConfig,
       listeners,
@@ -327,8 +335,6 @@ function EffectPanelHeaderFactory(
       </StyledEffectPanelHeader>
     );
   };
-
-  EffectPanelHeader.defaultProps = defaultProps;
 
   return EffectPanelHeader;
 }

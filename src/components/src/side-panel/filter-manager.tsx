@@ -19,8 +19,8 @@ import AddFilterButtonFactory from './filter-panel/add-filter-button';
 import DatasetSectionFactory from './layer-panel/dataset-section';
 import {PanelMeta} from './common/types';
 
-type VisStateActionHandlers = ActionHandlers<typeof VisStateActions>;
-type UiStateActionHandlers = ActionHandlers<typeof UIStateActions>;
+export type VisStateActionHandlers = ActionHandlers<typeof VisStateActions>;
+export type UiStateActionHandlers = ActionHandlers<typeof UIStateActions>;
 
 export type FilterManagerProps = {
   filters: Filter[];
@@ -77,9 +77,11 @@ function FilterManagerFactory(
     const {
       removeFilter,
       setFilter,
+      setFilterPlot,
       toggleFilterAnimation,
       toggleFilterFeature,
-      setFilterView
+      setFilterView,
+      syncTimeFilterWithLayerTimeline
     } = visStateActions;
 
     const filterPanelCallbacks = useMemo(() => {
@@ -117,6 +119,8 @@ function FilterManagerFactory(
             toggleAnimation={filterPanelCallbacks[filter.id].toggleAnimation}
             toggleFilterFeature={filterPanelCallbacks[filter.id].toggleFilterFeature}
             setFilter={setFilter}
+            setFilterPlot={setFilterPlot}
+            syncTimeFilterWithLayerTimeline={syncTimeFilterWithLayerTimeline}
           />
         ))}
       </SidePanelSection>

@@ -2,30 +2,28 @@
 // Copyright contributors to the kepler.gl project
 
 import React from 'react';
-import cloneDeep from 'lodash.clonedeep';
+import cloneDeep from 'lodash/cloneDeep';
 
 import {fireEvent, screen} from '@testing-library/react';
 import {dataTestIds} from '@kepler.gl/constants';
 import {appInjector, LayerListFactory} from '@kepler.gl/components';
-import {VisStateActions, UIStateActions,MapStateActions, addDataToMap, keplerGlInit} from '@kepler.gl/actions';
+import {
+  VisStateActions,
+  UIStateActions,
+  MapStateActions,
+  addDataToMap,
+  keplerGlInit
+} from '@kepler.gl/actions';
 import {processCsvData} from '@kepler.gl/processors';
 import {keplerGlReducerCore as keplerGlReducer} from '@kepler.gl/reducers';
 
 import {renderWithTheme} from '../../../helpers/component-jest-utils';
 import testLayerData from '../../../fixtures/test-layer-data';
 import {dataId as csvDataId} from '../../../fixtures/test-csv-data';
+import {applyActions} from '../../../helpers/mock-state-utils';
 
 // TODO: need to be deleted and imported from raw-states
 const InitialState = keplerGlReducer(undefined, keplerGlInit({}));
-
-function applyActions(reducer, initialState, actions) {
-  const actionQ = Array.isArray(actions) ? actions : [actions];
-
-  return actionQ.reduce(
-    (updatedState, {action, payload}) => reducer(updatedState, action(...payload)),
-    initialState
-  );
-}
 
 function mockStateWithMultipleH3Layers() {
   const initialState = cloneDeep(InitialState);
@@ -144,6 +142,6 @@ describe('Components -> SidePanel -> LayerPanel -> LayerList', () => {
     const removeLayerButton = screen.getByTestId(dataTestIds.removeLayerAction);
     fireEvent.click(removeLayerButton);
 
-    expect(removeLayer).toBeCalled();
+    expect(removeLayer).toHaveBeenCalled();
   });
 });

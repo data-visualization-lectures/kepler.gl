@@ -117,6 +117,9 @@ export default {
     radiusRange: 'Rango de radio',
     clusterRadius: 'Radio del cluster en píxeles',
     radiusRangePixels: 'Rango del radio en píxeles',
+    billboard: 'Modo cartelera',
+    billboardDescription: 'Oriente la geometría hacia la cámara',
+    fadeTrail: 'Sendero de desvanecimiento',
     opacity: 'Opacidad',
     coverage: 'Cobertura',
     outline: 'Contorno',
@@ -148,9 +151,9 @@ export default {
     weightIntensity: 'Intensidad de peso',
     zoomScale: 'Escala de zoom',
     heightRange: 'Rango de alturas',
+    heightMultiplier: 'Multiplicador de altura',
     fixedHeight: 'Altura fija',
-    fixedHeightDescription: 'Usar altura sin modificaciones',
-    heightMultiplier: 'Multiplicador de altura'
+    fixedHeightDescription: 'Usar altura sin modificaciones'
   },
   layerManager: {
     addData: 'Añadir datos',
@@ -193,6 +196,8 @@ export default {
     disable3DMap: 'Desactivar mapa 3D',
     DrawOnMap: 'Dibujar en el mapa',
     selectLocale: 'Seleccionar configuración regional',
+    showAiAssistantPanel: 'Mostrar el panel de AI Assistant',
+    hideAiAssistantPanel: 'Ocultar el panel de AI Assistant',
     hideLayerPanel: 'Ocultar la tabla de capas',
     showLayerPanel: 'Mostrar la tabla  de capas',
     moveToTop: 'Desplazar arriba de las capas de datos',

@@ -8,7 +8,7 @@ To achieve the same result with `togglePerspective` updating kepler.gl's map per
 
 ```js
 // action and forward dispatcher
-import {togglePerspective} from 'kepler.gl/actions';
+import {togglePerspective} from '@kepler.gl/actions';
 
 const MapContainer = ({dispatch}) => (
   <div>
@@ -21,7 +21,7 @@ const MapContainer = ({dispatch}) => (
 or import the corresponding updater `mapStateUpdaters.togglePerspectiveUpdater` and call it inside the root reducer. The example below demos how to add a button outside kepler.gl component, and update the map perspective when click it.
 
 ```js
-import keplerGlReducer, {mapStateUpdaters} from 'kepler.gl/reducers';
+import keplerGlReducer, {mapStateUpdaters} from '@kepler.gl/reducers';
 
 // Root Reducer
 const reducers = combineReducers({

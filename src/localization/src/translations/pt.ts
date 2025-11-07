@@ -115,6 +115,9 @@ export default {
     radiusRange: 'Alcance do Raio',
     clusterRadius: 'Raio do Agrupamento em pixels',
     radiusRangePixels: 'Alcance do Raio em pixels',
+    billboard: 'Câmera de rosto',
+    billboardDescription: 'Oriente a geometria em direção à câmera',
+    fadeTrail: 'Fade trilha',
     opacity: 'Opacidade',
     coverage: 'Cobertura',
     outline: 'Contorno',
@@ -146,9 +149,9 @@ export default {
     weightIntensity: 'Intensidade da Espessura',
     zoomScale: 'Escala do Zoom',
     heightRange: 'Alcance da Altura',
+    heightMultiplier: 'Multiplicador de altura',
     fixedHeight: 'Altura fixa',
-    fixedHeightDescription: 'Use a altura sem modificações',
-    heightMultiplier: 'Multiplicador de altura'
+    fixedHeightDescription: 'Use a altura sem modificações'
   },
   layerManager: {
     addData: 'Adicionar Dados',
@@ -191,6 +194,8 @@ export default {
     disable3DMap: 'Desabilitar Mapa 3D',
     DrawOnMap: 'Desenhar no mapa',
     selectLocale: 'Selecionar língua',
+    showAiAssistantPanel: 'Mostrar painel de AI Assistant',
+    hideAiAssistantPanel: 'Esconder painel de AI Assistant',
     hideLayerPanel: 'Esconder painel de camada',
     showLayerPanel: 'Mostrar painel de camada',
     moveToTop: 'Mover para o topo das camadas',

@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import {FormattedMessage} from '@kepler.gl/localization';
 import {Tooltip} from '../common/styled-components';
 import {BaseProps} from '../common/icons';
+import {BaseComponentProps} from '../types';
 
 export type PanelHeaderActionIcon = ComponentType<Partial<BaseProps>>;
 
@@ -26,26 +27,29 @@ export interface PanelHeaderActionProps {
 }
 
 type HeaderActionWrapperProps = {
-  flush?: boolean;
-  active?: boolean;
-  hoverColor?: string | null;
-  testId?: string;
+  $flush?: boolean;
+  $active?: boolean;
+  $hoverColor?: string | null;
+  $dataTestId?: any;
 };
 
-const HeaderActionWrapper = styled.div.attrs((props: HeaderActionWrapperProps) => ({
-  dataTestId: props.testId
+type HeaderActionWrapperCssProps = {$testId?: string} & HeaderActionWrapperProps &
+  BaseComponentProps;
+
+const HeaderActionWrapper = styled.div.attrs<HeaderActionWrapperCssProps>(props => ({
+  $dataTestId: props.$testId
 }))<HeaderActionWrapperProps>`
-  margin-left: ${props => (props.flush ? 0 : 8)}px;
+  margin-left: ${props => (props.$flush ? 0 : 8)}px;
   display: flex;
   align-items: center;
   color: ${props =>
-    props.active ? props.theme.panelHeaderIconActive : props.theme.panelHeaderIcon};
+    props.$active ? props.theme.panelHeaderIconActive : props.theme.panelHeaderIcon};
 
   cursor: pointer;
 
-  :hover {
+  &:hover {
     color: ${props =>
-      props.hoverColor ? props.theme[props.hoverColor] : props.theme.panelHeaderIconHover};
+      props.$hoverColor ? props.theme[props.$hoverColor] : props.theme.panelHeaderIconHover};
   }
 
   &.disabled {
@@ -77,9 +81,9 @@ export default function PanelHeaderActionFactory(): React.FC<PanelHeaderActionPr
           disabled,
           ...(className ? {[className]: true} : {})
         })}
-        active={active}
-        hoverColor={hoverColor}
-        flush={flush}
+        $active={active}
+        $hoverColor={hoverColor}
+        $flush={flush}
       >
         {IconComponent ? (
           <IconComponent

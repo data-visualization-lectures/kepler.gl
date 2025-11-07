@@ -2,7 +2,8 @@
 // Copyright contributors to the kepler.gl project
 
 import {getGlobalTaskQueue} from 'react-palm/tasks';
-import {isObject, toArray} from '@kepler.gl/utils';
+import {isObject} from '@kepler.gl/utils';
+import {toArray} from '@kepler.gl/common-utils';
 import {ValueOf} from '@kepler.gl/types';
 import {VisState, Merger, PostMergerPayload} from '@kepler.gl/schemas';
 
@@ -28,7 +29,7 @@ function callFunctionGetTask(fn: () => any): [any, any] {
 export function mergeStateFromMergers<State extends VisState>(
   state: State,
   initialState: State,
-  mergers: Merger<any>[],
+  mergers: Merger<State>[],
   postMergerPayload: PostMergerPayload
 ): {
   mergedState: State;
@@ -67,7 +68,7 @@ export function mergeStateFromMergers<State extends VisState>(
 
       // check if asyncTask was created (time consuming tasks)
       if (newTasks.length && merger.waitToFinish) {
-        // skip rest, the async merger will call applyMergerupdater() to continue
+        // skip rest, the async merger will call applyMergerUpdater() to continue
         return {mergedState, allMerged: false};
       }
     }
@@ -77,26 +78,26 @@ export function mergeStateFromMergers<State extends VisState>(
   return {mergedState, allMerged: true};
 }
 
-export function hasPropsToMerge<State extends {}>(
+export function hasPropsToMerge<State extends object>(
   state: State,
-  mergerProps: string | string[]
+  mergerProps?: string | string[]
 ): boolean {
   return Array.isArray(mergerProps)
-    ? Boolean(mergerProps.some(p => state.hasOwnProperty(p)))
-    : typeof mergerProps === 'string' && state.hasOwnProperty(mergerProps);
+    ? Boolean(mergerProps.some(p => Object.prototype.hasOwnProperty.call(state, p)))
+    : typeof mergerProps === 'string' && Object.prototype.hasOwnProperty.call(state, mergerProps);
 }
 
-export function getPropValueToMerger<State extends {}>(
+export function getPropValueToMerger<State extends object>(
   state: State,
-  mergerProps: string | string[],
+  mergerProps?: string | string[],
   toMergeProps?: string | string[]
 ): Partial<State> | ValueOf<State> {
-  return Array.isArray(mergerProps)
+  return Array.isArray(mergerProps) && Array.isArray(toMergeProps)
     ? mergerProps.reduce((accu, p, i) => {
         if (!toMergeProps) return accu;
         return {...accu, [toMergeProps[i]]: state[p]};
       }, {})
-    : state[mergerProps];
+    : state[mergerProps as string];
 }
 
 export function resetStateToMergeProps<State extends VisState>(

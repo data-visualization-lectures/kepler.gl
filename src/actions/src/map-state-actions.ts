@@ -5,14 +5,14 @@ import {createAction} from '@reduxjs/toolkit';
 import {default as ActionTypes} from './action-types';
 import {Bounds, Merge, Viewport} from '@kepler.gl/types';
 
-export type TogglePerspectiveUpdaterAction = {};
+export type TogglePerspectiveUpdaterAction = void;
 /**
  *
  * Toggle between 3d and 2d map.
  * @memberof mapStateActions
  * @public
  * @example
- * import {togglePerspective} from 'kepler.gl/actions';
+ * import {togglePerspective} from '@kepler.gl/actions';
  * this.props.dispatch(togglePerspective());
  */
 export const togglePerspective: () => Merge<
@@ -27,15 +27,15 @@ export type FitBoundsUpdaterAction = {payload: Bounds};
  * @param {Array<Number>} bounds as `[lngMin, latMin, lngMax, latMax]`
  * @public
  * @example
- * import {fitBounds} from 'kepler.gl/actions';
+ * import {fitBounds} from '@kepler.gl/actions';
  * this.props.dispatch(fitBounds([-122.23, 37.127, -122.11, 37.456]));
  */
 export const fitBounds: (
   payload: Bounds
-) => Merge<
-  FitBoundsUpdaterAction,
-  {type: typeof ActionTypes.FIT_BOUNDS}
-> = createAction(ActionTypes.FIT_BOUNDS, (bounds: Bounds) => ({payload: bounds}));
+) => Merge<FitBoundsUpdaterAction, {type: typeof ActionTypes.FIT_BOUNDS}> = createAction(
+  ActionTypes.FIT_BOUNDS,
+  (bounds: Bounds) => ({payload: bounds})
+);
 
 export type UpdateMapUpdaterAction = {payload: {viewport: Viewport; mapIndex?: number}};
 /**
@@ -53,7 +53,7 @@ export type UpdateMapUpdaterAction = {payload: {viewport: Viewport; mapIndex?: n
  * @param {number} mapIndex Index of which map to update the viewport of
  * @public
  * @example
- * import {updateMap} from 'kepler.gl/actions';
+ * import {updateMap} from '@kepler.gl/actions';
  * this.props.dispatch(updateMap({latitude: 37.75043, longitude: -122.34679, width: 800, height: 1200}, 0));
  */
 
@@ -79,15 +79,15 @@ export type ToggleSplitMapUpdaterAction = {
  * @param {Number} [index] index is provided, close split map at index
  * @public
  * @example
- * import {toggleSplitMap} from 'kepler.gl/actions';
+ * import {toggleSplitMap} from '@kepler.gl/actions';
  * this.props.dispatch(toggleSplitMap());
  */
 export const toggleSplitMap: (
   payload: number
-) => Merge<
-  ToggleSplitMapUpdaterAction,
-  {type: typeof ActionTypes.TOGGLE_SPLIT_MAP}
-> = createAction(ActionTypes.TOGGLE_SPLIT_MAP, (index: number) => ({payload: index}));
+) => Merge<ToggleSplitMapUpdaterAction, {type: typeof ActionTypes.TOGGLE_SPLIT_MAP}> = createAction(
+  ActionTypes.TOGGLE_SPLIT_MAP,
+  (index: number) => ({payload: index})
+);
 
 export type ToggleSplitMapViewportUpdaterAction = {
   payload: {
@@ -124,7 +124,7 @@ export const toggleSplitMapViewport: (payload: {
  *
  * @public
  */
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const mapStateActions = null;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */

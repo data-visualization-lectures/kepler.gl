@@ -1,13 +1,26 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import styled from 'styled-components';
+import {media} from '@kepler.gl/styles';
+import {RGBColor} from '@kepler.gl/types';
+import classnames from 'classnames';
 import DatePicker from 'react-date-picker';
 import TimePicker from 'react-time-picker';
-import ReactTooltip from 'react-tooltip';
-import {media} from '@kepler.gl/styles';
-import classnames from 'classnames';
-import {RGBColor} from '@kepler.gl/types';
+import ReactTooltip, {TooltipProps} from 'react-tooltip';
+import styled, {IStyledComponent} from 'styled-components';
+import isPropValid from '@emotion/is-prop-valid';
+
+import {BaseComponentProps} from '../types';
+
+// This implements the default behavior from styled-components v5
+export function shouldForwardProp(propName, target) {
+  if (typeof target === 'string') {
+    // For HTML elements, forward the prop if it is a valid HTML attribute
+    return isPropValid(propName);
+  }
+  // For other elements, forward all props
+  return true;
+}
 
 export const SelectText = styled.span`
   color: ${props => props.theme.labelColor};
@@ -35,7 +48,7 @@ export const IconRoundSmall = styled.div`
   align-items: center;
   justify-content: center;
 
-  :hover {
+  &:hover {
     cursor: pointer;
     background-color: ${props => props.theme.secondaryBtnBgdHover};
   }
@@ -148,36 +161,40 @@ export const SidePanelDivider = styled.div.attrs({
   height: ${props => props.theme.sidepanelDividerHeight}px;
 `;
 
-export const Tooltip = styled(ReactTooltip)`
+type TooltipAttrsProps = {interactive?: boolean} & TooltipProps & BaseComponentProps;
+
+export const Tooltip: IStyledComponent<'web', TooltipAttrsProps> = styled(
+  ReactTooltip
+)<TooltipProps>`
   &.__react_component_tooltip {
     font-size: ${props => props.theme.tooltipFontSize};
     font-weight: 400;
-    padding: 7px 18px;
+    padding: 10px 18px;
     box-shadow: ${props => props.theme.tooltipBoxShadow};
 
     &.type-dark {
       background-color: ${props => props.theme.tooltipBg};
       color: ${props => props.theme.tooltipColor};
       &.place-bottom {
-        :after {
+        &:after {
           border-bottom-color: ${props => props.theme.tooltipBg};
         }
       }
 
       &.place-top {
-        :after {
+        &:after {
           border-top-color: ${props => props.theme.tooltipBg};
         }
       }
 
       &.place-right {
-        :after {
+        &:after {
           border-right-color: ${props => props.theme.tooltipBg};
         }
       }
 
       &.place-left {
-        :after {
+        &:after {
           border-left-color: ${props => props.theme.tooltipBg};
         }
       }
@@ -185,7 +202,10 @@ export const Tooltip = styled(ReactTooltip)`
   }
 `;
 
-export interface ButtonProps {
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  className?: string;
+  ref?: React.ForwardedRef<HTMLElement>;
+  children?: React.ReactNode;
   negative?: boolean;
   secondary?: boolean;
   link?: boolean;
@@ -196,10 +216,11 @@ export interface ButtonProps {
   disabled?: boolean;
   width?: string;
   inactive?: boolean;
-}
+  size?: string;
+};
 
 // this needs to be an actual button to be able to set disabled attribute correctly
-export const Button = styled.button.attrs(props => ({
+export const Button = styled.button.withConfig({shouldForwardProp}).attrs(props => ({
   className: classnames('button', props.className)
 }))<ButtonProps>`
   align-items: center;
@@ -259,9 +280,9 @@ export const Button = styled.button.attrs(props => ({
       : props.link
       ? props.theme.linkBtnBorder
       : props.theme.primaryBtnBorder};
-  :hover,
-  :focus,
-  :active,
+  &:hover,
+  &:focus,
+  &:active,
   &.active {
     background-color: ${props =>
       props.negative
@@ -298,18 +319,18 @@ interface InputProps {
   secondary?: boolean;
 }
 
-export const Input = styled.input<InputProps>`
+export const Input = styled.input.withConfig({shouldForwardProp})<InputProps>`
   ${props => (props.secondary ? props.theme.secondaryInput : props.theme.input)};
 `;
 
-export const InputLight = styled.input`
+export const InputLight = styled.input.withConfig({shouldForwardProp})`
   ${props => props.theme.inputLT};
 `;
 
-export const TextArea = styled.textarea<InputProps>`
+export const TextArea = styled.textarea.withConfig({shouldForwardProp})<InputProps>`
   ${props => (props.secondary ? props.theme.secondaryInput : props.theme.input)};
 `;
-export const TextAreaLight = styled.textarea`
+export const TextAreaLight = styled.textarea.withConfig({shouldForwardProp})`
   ${props => props.theme.inputLT} height: auto;
   white-space: pre-wrap;
 `;
@@ -325,7 +346,7 @@ export interface StyledPanelHeaderProps {
   isValid?: boolean;
 }
 
-export const StyledPanelHeader = styled.div<StyledPanelHeaderProps>`
+export const StyledPanelHeader = styled.div.withConfig({shouldForwardProp})<StyledPanelHeaderProps>`
   background-color: ${props =>
     props.active ? props.theme.panelBackgroundHover : props.theme.panelBackground};
   border-left: 3px solid
@@ -378,7 +399,7 @@ interface DatasetSquareProps {
   backgroundColor: RGBColor;
 }
 
-export const DatasetSquare = styled.div<DatasetSquareProps>`
+export const DatasetSquare = styled.div.withConfig({shouldForwardProp})<DatasetSquareProps>`
   display: inline-block;
   width: 10px;
   height: 10px;
@@ -390,7 +411,7 @@ interface SelectionButtonProps {
   selected?: boolean;
 }
 
-export const SelectionButton = styled.div<SelectionButtonProps>`
+export const SelectionButton = styled.div.withConfig({shouldForwardProp})<SelectionButtonProps>`
   position: relative;
   border-radius: 2px;
   border: 1px solid
@@ -408,7 +429,7 @@ export const SelectionButton = styled.div<SelectionButtonProps>`
   margin-right: 6px;
   padding: 6px 16px;
 
-  :hover {
+  &:hover {
     color: ${props => props.theme.selectionBtnActColor};
     border: 1px solid ${props => props.theme.selectionBtnBorderActColor};
   }
@@ -523,11 +544,28 @@ export const StyledMapContainer = styled.div`
       display: none;
     }
   }
+  .mapboxgl-map {
+    .mapboxgl-missing-css {
+      display: none;
+    }
+    .mapboxgl-ctrl-attrib {
+      display: none;
+    }
+  }
 `;
 
-export const StyledAttrbution = styled.div.attrs({
-  className: 'maplibre-attribution-container'
-})`
+export type StyledAttributionProps = {
+  mapLibCssClass: string;
+  mapLibAttributionCssClass: string;
+};
+
+export const StyledAttribution = styled.div
+  .withConfig({
+    shouldForwardProp: prop => !['mapLibCssClass', 'mapLibAttributionCssClass'].includes(prop)
+  })
+  .attrs<StyledAttributionProps>(props => ({
+    className: props.mapLibAttributionCssClass
+  }))<StyledAttributionProps>`
   bottom: 0;
   right: 0;
   position: absolute;
@@ -557,7 +595,7 @@ export const StyledAttrbution = styled.div.attrs({
     align-items: center;
     color: ${props => props.theme.labelColor};
 
-    a.maplibregl-ctrl-logo {
+    a.${props => props.mapLibCssClass}-ctrl-logo {
       width: 72px;
       margin-left: 4px;
       background-size: contain;
@@ -699,14 +737,18 @@ interface MapControlButtonProps {
   active?: boolean;
 }
 
-export const MapControlButton = styled(Button).attrs(props => ({
-  className: classnames('map-control-button', props.className)
-}))<MapControlButtonProps>`
+export const MapControlButton = styled(Button)
+  .withConfig({
+    shouldForwardProp: prop => !['active'].includes(prop)
+  })
+  .attrs(props => ({
+    className: classnames('map-control-button', props.className)
+  }))<MapControlButtonProps>`
   box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.16);
   height: 32px;
   width: 32px;
   padding: 0;
-  border-radius: 0;
+  border-radius: ${props => props.theme.floatingBtnRadius};
   background-color: ${props =>
     props.active ? props.theme.floatingBtnBgdHover : props.theme.floatingBtnBgd};
   color: ${props =>
@@ -714,9 +756,9 @@ export const MapControlButton = styled(Button).attrs(props => ({
   border: ${props =>
     props.active ? props.theme.floatingBtnBorderHover : props.theme.floatingBtnBorder};
 
-  :hover,
-  :focus,
-  :active,
+  &:hover,
+  &:focus,
+  &:active,
   &.active {
     background-color: ${props => props.theme.floatingBtnBgdHover};
     color: ${props => props.theme.floatingBtnActColor};
@@ -750,7 +792,7 @@ export const CheckMark = styled.span.attrs({
   height: 10px;
   border-top-left-radius: 2px;
 
-  :after {
+  &:after {
     position: absolute;
     display: table;
     border: 1px solid #fff;

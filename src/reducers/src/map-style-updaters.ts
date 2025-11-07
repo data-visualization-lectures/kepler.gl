@@ -2,23 +2,23 @@
 // Copyright contributors to the kepler.gl project
 
 import Task, {withTask} from 'react-palm/tasks';
-import cloneDeep from 'lodash.clonedeep';
+import cloneDeep from 'lodash/cloneDeep';
 import Console from 'global/console';
 
 // Utils
 import {
   getDefaultLayerGroupVisibility,
-  isValidStyleUrl,
   getStyleDownloadUrl,
   mergeLayerGroupVisibility,
   editTopMapStyle,
   editBottomMapStyle,
   getStyleImageIcon,
-  generateHashId,
   isPlainObject,
   hexToRgb,
-  colorMaybeToRGB
+  colorMaybeToRGB,
+  getApplicationConfig
 } from '@kepler.gl/utils';
+import {generateHashId} from '@kepler.gl/common-utils';
 import {
   DEFAULT_MAP_STYLES,
   DEFAULT_LAYER_GROUPS,
@@ -26,7 +26,8 @@ import {
   NO_MAP_ID,
   DEFAULT_BLDG_COLOR,
   DEFAULT_BACKGROUND_COLOR,
-  BASE_MAP_BACKGROUND_LAYER_IDS
+  BASE_MAP_BACKGROUND_LAYER_IDS,
+  DEFAULT_BASE_MAP_STYLE
 } from '@kepler.gl/constants';
 import {ACTION_TASK, LOAD_MAP_STYLE_TASK} from '@kepler.gl/tasks';
 import {rgb} from 'd3-color';
@@ -71,22 +72,28 @@ export type MapStyle = {
   };
 };
 
+export const getDefaultMapStyles = (cdnUrl: string) => {
+  return DEFAULT_MAP_STYLES.reduce(
+    (accu, curr) => ({
+      ...accu,
+      [curr.id]: {
+        ...curr,
+        icon: `${cdnUrl}/${curr.icon}`
+      }
+    }),
+    {}
+  );
+};
+
 const getDefaultState = (): MapStyle => {
   const visibleLayerGroups = {};
-  const styleType = 'dark-matter';
   const topLayerGroups = {};
 
   return {
-    styleType,
+    styleType: DEFAULT_BASE_MAP_STYLE,
     visibleLayerGroups,
     topLayerGroups,
-    mapStyles: DEFAULT_MAP_STYLES.reduce(
-      (accu, curr) => ({
-        ...accu,
-        [curr.id]: curr
-      }),
-      {}
-    ),
+    mapStyles: getDefaultMapStyles(getApplicationConfig().cdnUrl),
     // save mapbox access token
     mapboxApiAccessToken: null,
     mapboxApiUrl: DEFAULT_MAPBOX_API_URL,
@@ -107,7 +114,7 @@ const getDefaultState = (): MapStyle => {
  * @public
  * @example
  *
- * import keplerGlReducer, {mapStyleUpdaters} from 'kepler.gl/reducers';
+ * import keplerGlReducer, {mapStyleUpdaters} from '@kepler.gl/reducers';
  * // Root Reducer
  * const reducers = combineReducers({
  *  keplerGl: keplerGlReducer,
@@ -137,10 +144,11 @@ const getDefaultState = (): MapStyle => {
  *
  * export default composedReducer;
  */
-/* eslint-disable no-unused-vars */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const mapStyleUpdaters = null;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */
 /**
  * Default initial `mapStyle`
  * @memberof mapStyleUpdaters
@@ -516,7 +524,7 @@ export const loadMapStylesUpdater = (
 
 function createActionTask(action, payload) {
   if (typeof action === 'function') {
-    return ACTION_TASK().map(_ => action(payload));
+    return ACTION_TASK().map(() => action(payload));
   }
 
   return null;
@@ -601,9 +609,7 @@ function getLoadMapStyleTasks(mapStyles, mapboxApiAccessToken, mapboxApiUrl, onS
         // @ts-expect-error
         .map(({id, url, accessToken}) => ({
           id,
-          url: isValidStyleUrl(url)
-            ? getStyleDownloadUrl(url, accessToken || mapboxApiAccessToken, mapboxApiUrl)
-            : url
+          url: getStyleDownloadUrl(url, accessToken || mapboxApiAccessToken, mapboxApiUrl)
         }))
         .map(LOAD_MAP_STYLE_TASK)
     ).bimap(
@@ -678,7 +684,7 @@ export const loadCustomMapStyleUpdater = (
         }
       : {}),
     ...(icon ? {icon} : {}),
-    ...(error ? {error} : {})
+    ...(error !== undefined ? {error} : {})
   }
 });
 
@@ -698,13 +704,14 @@ export const inputMapStyleUpdater = (
 
   // differentiate between either a url to hosted style json that needs an icon url,
   // or an icon already available client-side as a data uri
-  const isValidUrl = isValidStyleUrl(updated.url);
   const isUpdatedIconDataUri = updated.icon?.startsWith('data:image');
-  const isValid = isValidUrl || Boolean(updated.uploadedFile);
+  const isMapboxStyleUrl =
+    updated.url?.startsWith('mapbox://') || updated.url?.includes('mapbox.com');
 
   const icon =
-    isValidUrl && !isUpdatedIconDataUri
-      ? getStyleImageIcon({
+    !isUpdatedIconDataUri && isMapboxStyleUrl
+      ? // Get image icon urls only for mapbox map lib.
+        getStyleImageIcon({
           mapState,
           styleUrl: updated.url || '',
           mapboxApiAccessToken: updated.accessToken || state.mapboxApiAccessToken || '',
@@ -716,7 +723,7 @@ export const inputMapStyleUpdater = (
     ...state,
     inputStyle: {
       ...updated,
-      isValid,
+      isValid: true,
       icon
     }
   };
@@ -776,7 +783,7 @@ export const removeCustomMapStyleUpdater = (
 ): MapStyle => {
   const {id} = action.payload;
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {[id]: _, ...restOfMapStyles} = state.mapStyles;
 
   const newState = {

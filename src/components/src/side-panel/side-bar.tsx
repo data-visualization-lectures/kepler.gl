@@ -69,7 +69,7 @@ const StyledCollapseButton = styled.div`
   top: ${props => props.theme.sidePanel.margin.top}px;
   width: 20px;
 
-  :hover {
+  &:hover {
     cursor: pointer;
     box-shadow: none;
     background-color: ${props => props.theme.sideBarCloseBtnBgdHover};
@@ -93,7 +93,9 @@ function SidebarFactory(CollapseButton: ReturnType<typeof CollapseButtonFactory>
       width: 300,
       minifiedWidth: 0,
       isOpen: true,
-      onOpenOrClose: function noop() {},
+      onOpenOrClose: function noop() {
+        return;
+      },
       shouldShowCollapseButton: true
     };
 

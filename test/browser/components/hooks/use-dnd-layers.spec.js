@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import React from 'react';
 import {renderHook, act} from '@testing-library/react';
 import {useDispatch} from 'react-redux';
 import {useDndLayers} from '@kepler.gl/components';
@@ -10,7 +9,7 @@ import {
   DROPPABLE_MAP_CONTAINER_TYPE,
   SORTABLE_LAYER_TYPE,
   SORTABLE_SIDE_PANEL_TYPE
-} from '@kepler.gl/constants';
+} from '@kepler.gl/components/common/dnd-layer-items';
 import {reorderLayerOrder} from '@kepler.gl/reducers';
 
 // Mock useDispatch hook

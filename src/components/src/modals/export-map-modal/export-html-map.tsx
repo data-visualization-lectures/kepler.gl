@@ -36,8 +36,8 @@ const StyledInput = styled.input<StyledInputProps>`
   outline: 0;
   font-size: ${props => props.theme.inputFontSize};
 
-  :active,
-  :focus,
+  &:active,
+  &:focus,
   &.focus,
   &.active {
     outline: 0;
@@ -69,8 +69,12 @@ type IntlProps = {
 function ExportHtmlMapFactory(): React.ComponentType<ExportHtmlMapProps> {
   /** @type {typeof import('./export-html-map').ExportHtmlMap} */
   const ExportHtmlMap: React.FC<ExportHtmlMapProps & IntlProps> = ({
-    onChangeExportMapHTMLMode = mode => {},
-    onEditUserMapboxAccessToken = token => {},
+    onChangeExportMapHTMLMode = () => {
+      return;
+    },
+    onEditUserMapboxAccessToken = () => {
+      return;
+    },
     options = {},
     intl
   }) => (

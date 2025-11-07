@@ -11,6 +11,7 @@ import {KeyEvent} from '@kepler.gl/constants';
 import {Input} from '../common/styled-components';
 import {Search, Delete} from '../common/icons';
 import {Viewport} from '@kepler.gl/types';
+import {isTest} from '@kepler.gl/utils';
 
 type StyledContainerProps = {
   width?: number;
@@ -18,13 +19,21 @@ type StyledContainerProps = {
 
 // matches only valid coordinates
 const COORDINATE_REGEX_STRING =
-  '^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)';
+  '(^[-+]?(?:[1-8]?\\d(?:\\.\\d+)?|90(?:\\.0+)?)),\\s*([-+]?(?:180(?:\\.0+)?|(?:(?:1[0-7]\\d)|(?:[1-9]?\\d))(?:\\.\\d+)?))$';
+
 const COORDINATE_REGEX = RegExp(COORDINATE_REGEX_STRING);
 
 const PLACEHOLDER = 'Enter an address or coordinates, ex 37.79,-122.40';
 
 let debounceTimeout: NodeJS.Timeout | null = null;
 
+/**
+ * Tests if a given query string contains valid coordinates.
+ * @param query The input string to test for coordinates.
+ * @returns A tuple where:
+ *   - If valid, returns `[true, longitude, latitude]`.
+ *   - If invalid, returns `[false, query]`.
+ */
 export const testForCoordinates = (query: string): [true, number, number] | [false, string] => {
   const isValid = COORDINATE_REGEX.test(query.trim());
 
@@ -33,8 +42,10 @@ export const testForCoordinates = (query: string): [true, number, number] | [fal
   }
 
   const tokens = query.trim().split(',');
+  const latitude = Number(tokens[0]);
+  const longitude = Number(tokens[1]);
 
-  return [isValid, Number(tokens[0]), Number(tokens[1])];
+  return [isValid, longitude, latitude];
 };
 
 const StyledContainer = styled.div<StyledContainerProps>`
@@ -87,7 +98,7 @@ const StyledContainer = styled.div<StyledContainerProps>`
     display: flex;
     align-items: center;
 
-    :hover {
+    &:hover {
       cursor: pointer;
       color: ${props => props.theme.textColorHl};
     }
@@ -121,7 +132,6 @@ type IntlProps = {
   intl: IntlShape;
 };
 
-/** @type {import('./geocoder').GeocoderComponent} */
 const GeoCoder: React.FC<GeocoderProps & IntlProps> = ({
   mapboxApiAccessToken,
   className = '',
@@ -139,14 +149,14 @@ const GeoCoder: React.FC<GeocoderProps & IntlProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  /** @type {import('./geocoder').Results} */
   const initialResults: Result[] = [];
   const [results, setResults] = useState(initialResults);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const client = useMemo(() => geocoderService({accessToken: mapboxApiAccessToken}), [
-    mapboxApiAccessToken
-  ]);
+  const client = useMemo(
+    () => (isTest() ? null : geocoderService({accessToken: mapboxApiAccessToken})),
+    [mapboxApiAccessToken]
+  );
 
   const onChange = useCallback(
     event => {
@@ -154,8 +164,8 @@ const GeoCoder: React.FC<GeocoderProps & IntlProps> = ({
       setInputValue(queryString);
       const resultCoordinates = testForCoordinates(queryString);
       if (resultCoordinates[0]) {
-        const [_, latitude, longitude] = resultCoordinates;
-        setResults([{center: [latitude, longitude], place_name: queryString}]);
+        const [_isValid, longitude, latitude] = resultCoordinates;
+        setResults([{center: [longitude, latitude], place_name: queryString}]);
       } else {
         if (debounceTimeout) {
           clearTimeout(debounceTimeout);
@@ -272,7 +282,7 @@ const GeoCoder: React.FC<GeocoderProps & IntlProps> = ({
         />
         {showDelete ? (
           <div className="remove-result">
-            <Delete height="12px" onClick={onMarkDeleted} />
+            <Delete height="16px" onClick={onMarkDeleted} />
           </div>
         ) : null}
       </div>

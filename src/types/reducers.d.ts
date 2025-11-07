@@ -2,6 +2,7 @@
 // Copyright contributors to the kepler.gl project
 
 import {Field, Millisecond} from './types';
+import type {MapViewState} from '@deck.gl/core/typed';
 
 export type MapState = {
   pitch: number;
@@ -31,21 +32,14 @@ export type MapState = {
 
 export type Bounds = [number, number, number, number];
 
-export type HistogramBin = {
-  x0: number | undefined;
-  x1: number | undefined;
-  count: number;
-};
-
 export type RangeFieldDomain = {
-  domain: [number, number];
+  domain: number[];
   step: number;
-  histogram: HistogramBin[];
-  enlargedHistogram: HistogramBin[];
+  bins?: Bins;
 };
 
 export type SelectFieldDomain = {
-  domain: [true, false];
+  domain: boolean[];
 };
 export type MultiSelectFieldDomain = {
   domain: string[];
@@ -54,8 +48,7 @@ export type MultiSelectFieldDomain = {
 export type TimeRangeFieldDomain = {
   domain: [number, number];
   step: number;
-  histogram: HistogramBin[];
-  enlargedHistogram: HistogramBin[];
+  timeBins?: TimeBins;
   mappedValue: (Millisecond | null)[];
   // auto generated based on time domain
   defaultTimeFormat?: string | null;
@@ -70,10 +63,23 @@ export type FieldDomain =
   | SelectFieldDomain
   | MultiSelectFieldDomain;
 
+export interface LineDatum {
+  x: number;
+  y: number;
+  delta: string;
+  pct: number | null;
+}
+
 export type LineChart = {
   series: {x: number; y: number}[];
-  yDomain: [number, number];
-  xDomain: [number, number];
+  yDomain: number[] | undefined[];
+  xDomain: number[];
+
+  // Is this a valid part of LineChart?
+  aggregation: string;
+  interval: string;
+  yAxis: string;
+  bins?: Bins;
 };
 
 type FilterViewType = 'side' | 'enlarged' | 'minified';
@@ -82,8 +88,6 @@ export type FilterBase<L extends LineChart> = {
   dataId: string[];
   id: string;
   enabled: boolean;
-
-  freeze: boolean;
 
   // time range filter specific
   fixedDomain: boolean;
@@ -102,7 +106,9 @@ export type FilterBase<L extends LineChart> = {
 
   // plot
   yAxis: Field | null;
-  plotType: string;
+  plotType: {
+    [key: string]: any;
+  };
   lineChart?: L;
   // gpu filter
   gpu: boolean;
@@ -120,6 +126,9 @@ export type RangeFilter = FilterBase<LineChart> &
     value: [number, number];
     fixedDomain: true;
     typeOptions: ['range'];
+    plotType: {
+      [key: string]: any;
+    };
   };
 
 export type SelectFilter = FilterBase<LineChart> &
@@ -136,17 +145,21 @@ export type MultiSelectFilter = FilterBase<LineChart> &
     value: string[];
   };
 
+export type SyncTimelineMode = 0 | 1;
+
 export type TimeRangeFilter = FilterBase<LineChart> &
   TimeRangeFieldDomain & {
     type: 'timeRange';
     fieldType: 'timestamp';
-    fixedDomain: true;
+    fixedDomain: boolean;
     value: [number, number];
-    bins?: Object;
     plotType: {
       [key: string]: any;
     };
+    syncedWithLayerTimeline: boolean;
+    syncTimelineMode: SyncTimelineMode;
     animationWindow: string;
+    invertTrendColor: boolean;
   };
 
 export type PolygonFilter = FilterBase<LineChart> & {
@@ -163,6 +176,31 @@ export type Filter =
   | SelectFilter
   | MultiSelectFilter
   | PolygonFilter;
+
+export interface Bin {
+  count: number;
+  indexes: number[];
+  x0: number;
+  x1: number;
+}
+
+export interface Bins {
+  [dataId: string]: Bin[];
+}
+
+export interface TimeBins {
+  [dataId: string]: {
+    [interval: string]: Bin[];
+  };
+}
+
+export interface PlotType {
+  interval: ValueOf<Interval>;
+  type: ValueOf<PlotTypes>;
+  aggregation: ValueOf<AggregationTypes>;
+  defaultTimeFormat: string;
+  colorsByDataId?: {[dataId: string]: string};
+}
 
 export type Feature = {
   id: string;
@@ -206,12 +244,12 @@ export type SplitMap = {
 export type AnimationConfigTimeFormat = 'L' | 'L LT' | 'L LTS';
 
 export type AnimationConfig = {
-  domain: number[] | null;
+  domain: [number, number] | null;
   currentTime: number | null;
   speed: number;
   duration?: number | null;
   isAnimating?: boolean;
-  timeSteps?: null | number[];
+  timeSteps: number[] | null;
   // auto generated based on time domain
   defaultTimeFormat: AnimationTimeFormat | null;
   // custom ui input
@@ -221,6 +259,17 @@ export type AnimationConfig = {
   // hide or show control
   hideControl?: boolean;
 };
+
+export type FilterAnimationConfig = Pick<
+  TimeRangeFilter,
+  | 'dataId'
+  | 'value'
+  | 'animationWindow'
+  | 'speed'
+  | 'syncedWithLayerTimeline'
+  | 'syncTimelineMode'
+  | 'timezone'
+>;
 
 export type Timeline = {
   domain: [number, number] | null;
@@ -232,6 +281,7 @@ export type Timeline = {
   defaultTimeFormat?: null | string;
   timeFormat?: null | string;
   timezone?: null | string;
+  timeBins?: null | Record<string, any>;
   animationWindow?: null | Filter['animationWindow'];
   marks?: null | number[];
 } & Record<string, any>;
@@ -305,16 +355,18 @@ export type CustomStyleType =
   // boolean for backwards compatability with previous map configs
   | boolean;
 
+export type BaseMapColorModes = 'NONE' | 'DARK' | 'LIGHT';
+
 export type BaseMapStyle = {
   id: string;
   label: string;
   url: string;
   icon: string;
-  style?: Object;
+  style?: object;
   layerGroups: LayerGroup[];
   accessToken?: string;
   custom?: CustomStyleType;
-  colorMode?: BASE_MAP_COLOR_MODES;
+  colorMode?: BaseMapColorModes;
   complimentaryStyleId?: string;
 };
 
@@ -335,6 +387,7 @@ export declare type ExportImage = {
   processing: boolean;
   error: Error | false;
   center: boolean;
+  escapeXhtmlForWebpack?: boolean;
 };
 
 export type ExportData = {
@@ -363,14 +416,30 @@ export type MapControlItem = {
   disableClose?: boolean;
   activeMapIndex?: number;
 };
+
+export type MapLegendControlSettings = {
+  position: {
+    x: number;
+    y: number;
+    anchorX: 'left' | 'right';
+    anchorY: 'top' | 'bottom';
+  };
+  contentHeight: number;
+};
+
+export type MapControlMapLegend = MapControlItem & {
+  disableEdit?: boolean;
+  settings?: MapLegendControlSettings;
+};
 export type MapControls = {
   visibleLayers?: MapControlItem;
-  mapLegend?: MapControlItem;
+  mapLegend?: MapControlMapLegend;
   toggle3d?: MapControlItem;
   splitMap?: MapControlItem;
   mapDraw?: MapControlItem;
   mapLocale?: MapControlItem;
   effect?: MapControlItem;
+  aiAssistant?: MapControlItem;
 };
 
 export type LoadFiles = {
@@ -416,6 +485,8 @@ export type UiState = {
   filterPanelListView: PanelListView;
   // side panel close button visibility
   isSidePanelCloseButtonVisible: boolean | null;
+  // positive value indicates that something is loading
+  loadingIndicatorValue?: number;
 };
 
 /** Width of viewport */
@@ -442,6 +513,10 @@ export type Viewport = {
   maxZoom?: number;
   /**  Maximum geographical bounds, pan/zoom operations are constrained within those bounds */
   maxBounds?: Bounds;
+  /** viewport transition duration use by geocoder panel **/
+  transitionDuration?: MapViewState['transitionDuration'];
+  /** viewport transition duration use by geocoder panel **/
+  transitionInterpolator?: MapViewState['transitionInterpolator'];
 };
 
 export type MapStyles = {
@@ -512,11 +587,11 @@ export type TypedTimeRangeFilter = FilterBaseOmitRedudant &
     fieldType: 'timestamp';
     fixedDomain: true;
     value: [number, number];
-    bins?: Object;
     plotType: {
       [key: string]: any;
     };
     animationWindow: string;
+    invertTrendColor: boolean;
   };
 
 export type TypedPolygonFilter = FilterBaseOmitRedudant & {

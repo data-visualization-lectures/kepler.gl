@@ -4,7 +4,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Checkbox from './checkbox';
-import {generateHashId} from '@kepler.gl/utils';
+import {generateHashId} from '@kepler.gl/common-utils';
 
 const MapLayerSelect = styled.div`
   padding: 12px;
@@ -27,7 +27,7 @@ interface MapLayerSelectorProps {
 /** @type {typeof import('./map-layer-selector').default} */
 const MapLayerSelector = ({layers, onMapToggleLayer}: MapLayerSelectorProps) => (
   <MapLayerSelect className="map-layer-selector">
-    {layers.map((layer, index) => (
+    {layers.map(layer => (
       <div key={layer.id} className="map-layer-selector__item">
         <Checkbox
           type="radio"

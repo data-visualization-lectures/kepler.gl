@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import {withTask} from 'react-palm/tasks';
+import Task, {withTask} from 'react-palm/tasks';
 import Console from 'global/console';
-import {generateHashId, getError, isPlainObject, toArray} from '@kepler.gl/utils';
+import {getApplicationConfig, getError, isPlainObject} from '@kepler.gl/utils';
+import {generateHashId, toArray} from '@kepler.gl/common-utils';
 import {
   EXPORT_FILE_TO_CLOUD_TASK,
   ACTION_TASK,
@@ -15,6 +16,7 @@ import {
   exportFileError,
   postSaveLoadSuccess,
   loadCloudMapSuccess,
+  loadCloudMapSuccess2,
   loadCloudMapError,
   resetProviderStatus,
   removeNotification,
@@ -29,10 +31,11 @@ import {
   DATASET_FORMATS,
   OVERWRITE_MAP_ID
 } from '@kepler.gl/constants';
-import {ExportFileToCloudPayload} from '@kepler.gl/types';
+import {AddDataToMapPayload, ExportFileToCloudPayload} from '@kepler.gl/types';
 
 import {FILE_CONFLICT_MSG, MapListItem} from '@kepler.gl/cloud-providers';
 import {DATASET_HANDLERS} from '@kepler.gl/processors';
+import {KeplerTable} from '@kepler.gl/table';
 
 type ActionPayload<P> = {
   type?: string;
@@ -46,6 +49,7 @@ export type ProviderState = {
   currentProvider: string | null;
   successInfo: any;
   mapSaved: null | string;
+  savedMapId: null | string;
   initialState?: any;
   visualizations: MapListItem[];
 };
@@ -57,12 +61,13 @@ export const INITIAL_PROVIDER_STATE: ProviderState = {
   currentProvider: null,
   successInfo: {},
   mapSaved: null,
+  savedMapId: null,
   visualizations: []
 };
 
 function createActionTask(action, payload) {
   if (typeof action === 'function') {
-    return ACTION_TASK().map(_ => action(payload));
+    return ACTION_TASK().map(() => action(payload));
   }
 
   return null;
@@ -98,8 +103,8 @@ function createGlobalNotificationTasks({
     topic: DEFAULT_NOTIFICATION_TOPICS.global,
     message
   };
-  const task = ACTION_TASK().map(_ => addNotification(successNote));
-  return delayClose ? [task, DELAY_TASK(3000).map(_ => removeNotification(id))] : [task];
+  const task = ACTION_TASK().map(() => addNotification(successNote));
+  return delayClose ? [task, DELAY_TASK(3000).map(() => removeNotification(id))] : [task];
 }
 
 /**
@@ -151,7 +156,8 @@ export const exportFileSuccessUpdater = (
     successInfo: response,
     ...(!options.isPublic
       ? {
-          mapSaved: provider.name
+          mapSaved: provider.name,
+          savedMapId: response?.info?.id ?? null
         }
       : {})
   };
@@ -159,7 +165,7 @@ export const exportFileSuccessUpdater = (
   const tasks = [
     createActionTask(onSuccess, {response, provider, options}),
     closeModal &&
-      ACTION_TASK().map(_ => postSaveLoadSuccess(`Map saved to ${state.currentProvider}!`))
+      ACTION_TASK().map(() => postSaveLoadSuccess(`Map saved to ${state.currentProvider}!`))
   ].filter(d => d);
 
   return tasks.length ? withTask(newState, tasks) : newState;
@@ -175,8 +181,8 @@ export const postSaveLoadSuccessUpdater = (
   const message = action.payload || `Saved / Load to ${state.currentProvider} Success`;
 
   const tasks = [
-    ACTION_TASK().map(_ => toggleModal(null)),
-    ACTION_TASK().map(_ => resetProviderStatus()),
+    ACTION_TASK().map(() => toggleModal(null)),
+    ACTION_TASK().map(() => resetProviderStatus()),
     ...createGlobalNotificationTasks({message})
   ];
 
@@ -196,7 +202,7 @@ export const exportFileErrorUpdater = (
 
   if (isFileConflict(error)) {
     newState.mapSaved = provider.name;
-    return withTask(newState, [ACTION_TASK().map(_ => toggleModal(OVERWRITE_MAP_ID))]);
+    return withTask(newState, [ACTION_TASK().map(() => toggleModal(OVERWRITE_MAP_ID))]);
   }
 
   newState.providerError = getError(error);
@@ -262,6 +268,17 @@ function getDatasetHandler(format) {
     return defaultHandler;
   }
 
+  // use custom processors from table class
+  const TableClass = getApplicationConfig().table ?? KeplerTable;
+  if (typeof TableClass.getFileProcessor === 'function') {
+    const processorResult = TableClass.getFileProcessor(null, format);
+    if (!processorResult.processor) {
+      Console.warn(`No processor found for format ${format}, will use csv by default`);
+      return defaultHandler;
+    }
+    return processorResult.processor;
+  }
+
   if (!DATASET_HANDLERS[format]) {
     const supportedFormat = Object.keys(DATASET_FORMATS)
       .map(k => `'${k}'`)
@@ -275,19 +292,46 @@ function getDatasetHandler(format) {
   return DATASET_HANDLERS[format];
 }
 
-function parseLoadMapResponse(response, loadParams, provider) {
+/**
+ * A task to handle async processorMethod
+ * @param param0
+ * @returns
+ */
+async function parseLoadMapResponseTask({
+  response,
+  loadParams,
+  provider
+}: {
+  response: ProviderActions.LoadCloudMapSuccessPayload['response'];
+  loadParams: ProviderActions.LoadCloudMapSuccessPayload['loadParams'];
+  provider: ProviderActions.LoadCloudMapSuccessPayload['provider'];
+}) {
   const {map, format} = response;
   const processorMethod = getDatasetHandler(format);
 
-  const parsedDatasets = toArray(map.datasets).map((ds, i) => {
-    if (format === DATASET_FORMATS.keplergl) {
-      // no need to obtain id, directly pass them in
-      return processorMethod(ds);
-    }
-    const info = (ds && ds.info) || {id: generateHashId(6)};
-    const data = processorMethod(ds.data || ds);
-    return {info, data};
-  });
+  let parsedDatasets: AddDataToMapPayload['datasets'] = [];
+
+  if (
+    format === DATASET_FORMATS.keplergl &&
+    processorMethod !== DATASET_HANDLERS[DATASET_FORMATS.keplergl]
+  ) {
+    // plugin table provides processor for keplergl map, not single dataset with allData
+    const parsedMap = await processorMethod(map);
+    parsedDatasets = parsedMap.datasets;
+  } else {
+    const datasets = toArray(map.datasets);
+    parsedDatasets = await Promise.all(
+      datasets.map(async ds => {
+        if (format === DATASET_FORMATS.keplergl) {
+          // no need to obtain id, directly pass them in
+          return await processorMethod(ds);
+        }
+        const info = (ds && ds.info) || {id: generateHashId(6)};
+        const data = await processorMethod(ds.data || ds);
+        return {info, data};
+      })
+    );
+  }
 
   const info = {
     ...map.info,
@@ -297,15 +341,27 @@ function parseLoadMapResponse(response, loadParams, provider) {
   return {
     datasets: parsedDatasets,
     info,
-    ...(map.config ? {config: map.config} : {})
+    ...(map.config ? {config: map.config} : {}),
+    options: {
+      // do not center map when loading cloud map
+      centerMap: false
+    }
   };
 }
 
+const PARSE_LOAD_MAP_RESPONSE_TASK = Task.fromPromise(
+  parseLoadMapResponseTask,
+  'PARSE_LOAD_MAP_RESPONSE_TASK'
+);
+
+/**
+ * Used to load resources stored in a private storage.
+ */
 export const loadCloudMapSuccessUpdater = (
   state: ProviderState,
   action: ActionPayload<ProviderActions.LoadCloudMapSuccessPayload>
 ): ProviderState => {
-  const {response, loadParams, provider, onSuccess, onError} = action.payload;
+  const {response, loadParams, provider, onError} = action.payload;
 
   const formatError = checkLoadMapResponseError(response);
   if (formatError) {
@@ -315,6 +371,30 @@ export const loadCloudMapSuccessUpdater = (
     });
   }
 
+  // processorMethod can be async so create a task
+  const parseLoadMapResponseTask = PARSE_LOAD_MAP_RESPONSE_TASK({
+    response,
+    loadParams,
+    provider
+  }).bimap(
+    (datasetsPayload: AddDataToMapPayload) => {
+      return loadCloudMapSuccess2({...action.payload, datasetsPayload});
+    },
+    error =>
+      exportFileErrorUpdater(state, {
+        payload: {error, provider, onError}
+      })
+  );
+
+  return withTask(state, parseLoadMapResponseTask);
+};
+
+export const loadCloudMapSuccess2Updater = (
+  state: ProviderState,
+  action: ActionPayload<ProviderActions.LoadCloudMapSuccess2Payload>
+): ProviderState => {
+  const {datasetsPayload, response, loadParams, provider, onSuccess} = action.payload;
+
   const newState = {
     ...state,
     mapSaved: provider.name,
@@ -323,12 +403,10 @@ export const loadCloudMapSuccessUpdater = (
     isProviderLoading: false
   };
 
-  const payload = parseLoadMapResponse(response, loadParams, provider);
-
   const tasks = [
-    ACTION_TASK().map(_ => addDataToMap(payload)),
+    ACTION_TASK().map(() => addDataToMap(datasetsPayload)),
     createActionTask(onSuccess, {response, loadParams, provider}),
-    ACTION_TASK().map(_ => postSaveLoadSuccess(`Map from ${provider.name} loaded`))
+    ACTION_TASK().map(() => postSaveLoadSuccess(`Map from ${provider.name} loaded`))
   ].filter(d => d);
 
   return tasks.length ? withTask(newState, tasks) : newState;

@@ -10,7 +10,7 @@ import {FormattedMessage} from 'react-intl';
 import {ASSETS_URL} from '../../constants/default-settings';
 
 const StyledMapIcon = styled.div`
-  background-image: url("${ASSETS_URL}icon-demo-map.jpg");
+  background-image: url('${ASSETS_URL}icon-demo-map.jpg');
   background-repeat: no-repeat;
   background-size: 64px 48px;
   width: 64px;
@@ -56,7 +56,7 @@ const StyledTrySampleData = styled.div`
       font-size: 12px;
     `};
 
-    :hover {
+    &:hover {
       color: ${props => props.theme.textColorLT};
     }
 

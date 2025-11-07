@@ -7,17 +7,29 @@ import classnames from 'classnames';
 import {CSS} from '@dnd-kit/utilities';
 import {useSortable, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 
-import {dataTestIds, SORTABLE_EFFECT_TYPE, SORTABLE_EFFECT_PANEL_TYPE} from '@kepler.gl/constants';
+import {dataTestIds} from '@kepler.gl/constants';
 import {findById} from '@kepler.gl/utils';
-import {VisStateActions} from '@kepler.gl/actions';
 import {Effect} from '@kepler.gl/types';
+import {
+  addEffect,
+  updateEffect,
+  removeEffect,
+  reorderEffect,
+  ActionHandler
+} from '@kepler.gl/actions';
 
+import {SORTABLE_EFFECT_TYPE, SORTABLE_EFFECT_PANEL_TYPE} from '../common/dnd-layer-items';
 import EffectPanelFactory from './effect-panel';
 
 export type EffectListProps = {
   effects: Effect[];
   effectOrder: string[];
-  visStateActions: typeof VisStateActions;
+  visStateActions: {
+    addEffect: ActionHandler<typeof addEffect>;
+    updateEffect: ActionHandler<typeof updateEffect>;
+    removeEffect: ActionHandler<typeof removeEffect>;
+    reorderEffect: ActionHandler<typeof reorderEffect>;
+  };
   isSortable: boolean;
 };
 

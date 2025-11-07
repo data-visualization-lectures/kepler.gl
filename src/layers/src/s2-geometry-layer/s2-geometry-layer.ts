@@ -5,27 +5,28 @@ import {S2Layer} from '@deck.gl/geo-layers';
 import {
   HIGHLIGH_COLOR_3D,
   CHANNEL_SCALES,
-  ColorRange,
-  LAYER_VIS_CONFIGS
+  LAYER_VIS_CONFIGS,
+  DEFAULT_COLOR_UI
 } from '@kepler.gl/constants';
 import {default as KeplerTable} from '@kepler.gl/table';
 import Layer, {
   LayerBaseConfig,
   LayerBaseConfigPartial,
   LayerColorConfig,
-  LayerColumn,
   LayerSizeConfig,
   LayerStrokeColorConfig,
   LayerHeightConfig
 } from '../base-layer';
 import {
+  ColorRange,
   Merge,
   RGBColor,
   VisConfigBoolean,
   VisConfigColorRange,
   VisConfigColorSelect,
   VisConfigNumber,
-  VisConfigRange
+  VisConfigRange,
+  LayerColumn
 } from '@kepler.gl/types';
 import S2LayerIcon from './s2-layer-icon';
 import {getS2Center, validS2Token} from './s2-utils';
@@ -91,9 +92,11 @@ export const S2_TOKEN_FIELDS: {
 };
 
 export const s2RequiredColumns: ['token'] = ['token'];
-export const S2TokenAccessor = ({token}: S2GeometryLayerColumnsConfig) => (
-  dc: DataContainerInterface
-) => d => dc.valueAt(d.index, token.fieldIdx);
+export const S2TokenAccessor =
+  ({token}: S2GeometryLayerColumnsConfig) =>
+  (dc: DataContainerInterface) =>
+  d =>
+    dc.valueAt(d.index, token.fieldIdx);
 
 export const defaultElevation = 500;
 export const defaultLineWidth = 1;
@@ -115,6 +118,7 @@ export const S2VisConfigs: {
   enable3d: 'enable3d';
   elevationScale: 'elevationScale';
   enableElevationZoomFactor: 'enableElevationZoomFactor';
+  fixedHeight: 'fixedHeight';
   heightRange: 'elevationRange';
 
   // wireframe
@@ -145,6 +149,7 @@ export const S2VisConfigs: {
   enable3d: 'enable3d',
   elevationScale: 'elevationScale',
   enableElevationZoomFactor: 'enableElevationZoomFactor',
+  fixedHeight: 'fixedHeight',
   heightRange: 'elevationRange',
 
   // wireframe
@@ -222,8 +227,9 @@ export default class S2GeometryLayer extends Layer {
   }
 
   getDefaultLayerConfig(props: LayerBaseConfigPartial) {
+    const defaultLayerConfig = super.getDefaultLayerConfig(props ?? {});
     return {
-      ...super.getDefaultLayerConfig(props),
+      ...defaultLayerConfig,
 
       // add height visual channel
       heightField: null,
@@ -233,7 +239,11 @@ export default class S2GeometryLayer extends Layer {
       // add stroke color visual channel
       strokeColorField: null,
       strokeColorDomain: [0, 1],
-      strokeColorScale: 'quantile'
+      strokeColorScale: 'quantile',
+      colorUI: {
+        ...defaultLayerConfig.colorUI,
+        strokeColorRange: DEFAULT_COLOR_UI
+      }
     };
   }
 
@@ -252,7 +262,7 @@ export default class S2GeometryLayer extends Layer {
     };
   }
 
-  calculateDataAttribute({dataContainer, filteredIndex}: KeplerTable, getS2Token) {
+  calculateDataAttribute({filteredIndex}: KeplerTable, getS2Token) {
     const data: S2GeometryLayerData[] = [];
     for (let i = 0; i < filteredIndex.length; i++) {
       const index = filteredIndex[i];
@@ -267,7 +277,8 @@ export default class S2GeometryLayer extends Layer {
     return data;
   }
 
-  updateLayerMeta(dataContainer, getS2Token) {
+  updateLayerMeta(dataset: KeplerTable, getS2Token) {
+    const {dataContainer} = dataset;
     // add safe row flag
     const centroids = dataContainer.reduce(
       (acc, entry, index) => {
@@ -291,7 +302,7 @@ export default class S2GeometryLayer extends Layer {
     this.updateMeta({bounds});
   }
 
-  formatLayerData(datasets, oldLayerData, opt = {}) {
+  formatLayerData(datasets, oldLayerData) {
     if (this.config.dataId === null) {
       return {};
     }

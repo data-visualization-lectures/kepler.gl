@@ -4,9 +4,9 @@
 import React, {Component, CSSProperties, KeyboardEvent} from 'react';
 import {createPortal} from 'react-dom';
 import styled from 'styled-components';
-import window from 'global/window';
+import Window from 'global/window';
 import classnames from 'classnames';
-import get from 'lodash.get';
+import get from 'lodash/get';
 import {createSelector} from 'reselect';
 import FeatureActionPanelFactory, {FeatureActionPanelProps} from './feature-action-panel';
 import {
@@ -29,7 +29,7 @@ const StyledWrapper = styled.div`
   position: relative;
 `;
 
-const editorLayerFilter = (layer: Layer) => EDITOR_AVAILABLE_LAYERS.includes(layer.type!);
+const editorLayerFilter = (layer: Layer) => EDITOR_AVAILABLE_LAYERS.includes(layer.type || '');
 
 EditorFactory.deps = [FeatureActionPanelFactory];
 
@@ -102,11 +102,11 @@ export default function EditorFactory(
     state = {};
 
     componentDidMount() {
-      window.addEventListener('keydown', this._onKeyPressed);
+      Window.addEventListener('keydown', this._onKeyPressed);
     }
 
     componentWillUnmount() {
-      window.removeEventListener('keydown', this._onKeyPressed);
+      Window.removeEventListener('keydown', this._onKeyPressed);
     }
 
     layerSelector = (props: EditorProps) => props.layers;
@@ -207,7 +207,7 @@ export default function EditorFactory(
     }
   }
 
-  const Editor = (React.memo(EditorUnmemoized) as unknown) as typeof EditorUnmemoized;
+  const Editor = React.memo(EditorUnmemoized) as unknown as typeof EditorUnmemoized;
   Editor.displayName = 'Editor';
   return Editor;
 }

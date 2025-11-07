@@ -3,7 +3,7 @@
 
 import React, {PureComponent} from 'react';
 import {ThemeProvider} from 'styled-components';
-import window from 'global/window';
+import Window from 'global/window';
 
 import {theme} from '../styles';
 import {SECTIONS} from '../content';
@@ -15,6 +15,7 @@ import Walkthrough from './walkthrough';
 import Features from './features';
 import Ecosystems from './ecosystems';
 import Studio from './studio';
+import Desktop from './desktop';
 import Footer from './footer';
 import Section from './common/section';
 import Header from './header';
@@ -32,7 +33,8 @@ const SECTION_CONTENT = {
   examples: Examples,
   tutorials: Tutorials,
   ecosystems: Ecosystems,
-  studio: Studio
+  studio: Studio,
+  desktop: Desktop
 };
 
 export default class Home extends PureComponent {
@@ -57,7 +59,7 @@ export default class Home extends PureComponent {
 
   _disableBanner = () => {
     this._hideBanner();
-    window.localStorage.setItem(BannerKey, 'true');
+    Window.localStorage.setItem(BannerKey, 'true');
   };
 
   render() {

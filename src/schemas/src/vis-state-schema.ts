@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import pick from 'lodash.pick';
+import pick from 'lodash/pick';
 import {VERSIONS} from './versions';
 import {LAYER_VIS_CONFIGS, FILTER_VIEW_TYPES} from '@kepler.gl/constants';
-import {isFilterValidToSave, notNullorUndefined, findById} from '@kepler.gl/utils';
+import {colorRangeBackwardCompatibility, isFilterValidToSave, findById} from '@kepler.gl/utils';
+import {notNullorUndefined} from '@kepler.gl/common-utils';
 import Schema from './schema';
-import cloneDeep from 'lodash.clonedeep';
+import cloneDeep from 'lodash/cloneDeep';
 import {
   AddDataToMapOptions,
   AnimationConfig,
@@ -74,6 +75,7 @@ export interface VisState {
   splitMapsToBeMerged: SplitMap[];
   fileLoading: FileLoading | false;
   fileLoadingProgress: FileLoadingProgress;
+  loadingIndicatorValue: number;
   loaders: Loader[];
   loadOptions: object;
   initialState?: Partial<VisState>;
@@ -92,11 +94,11 @@ export type PostMergerPayload = {
   options?: AddDataToMapOptions;
   layerMergers?: Merger<any>[];
 };
-export type MergerActionPayload<S extends {}> = {
+export type MergerActionPayload<S extends object> = {
   mergers: Merger<S>[];
   postMergerPayload: PostMergerPayload;
 };
-export type MergerMergeFunc<S extends {}> = (
+export type MergerMergeFunc<S extends object> = (
   state: S,
   config: any,
   fromConfig: boolean,
@@ -107,7 +109,7 @@ export type ReplaceParentDatasetIdsFunc<T> = (
   dataId: string,
   dataIdToReplace: string
 ) => T | null;
-export type Merger<S extends {}> = {
+export type Merger<S extends object> = {
   merge: MergerMergeFunc<S>;
   prop: string | string[];
   toMergeProp?: string | string[];
@@ -116,9 +118,10 @@ export type Merger<S extends {}> = {
   waitForLayerData?: boolean;
   replaceParentDatasetIds?: ReplaceParentDatasetIdsFunc<ValueOf<S>>;
   saveUnmerged?: (state: S, unmerged: any) => S;
+  combineConfigs?: (configs: S[]) => S;
   getChildDatasetIds?: any;
 };
-export type VisStateMergers<S extends {}> = Merger<S>[];
+export type VisStateMergers<S extends object> = Merger<S>[];
 
 // in v0 geojson there is only sizeField
 
@@ -297,7 +300,7 @@ class LayerVisConfigSchemaV0 extends Schema {
 
 class LayerConfigSchemaDeleteV0 extends Schema {
   version = VERSIONS.v0;
-  load(value) {
+  load() {
     return {};
   }
 }
@@ -362,7 +365,7 @@ export const layerPropsV0 = {
  * V1 Schema
  */
 class ColumnSchemaV1 extends Schema {
-  save(columns, state) {
+  save(columns) {
     // starting from v1, only save column value
     // fieldIdx will be calculated during merge
     return {
@@ -398,12 +401,12 @@ class TextLabelSchemaV1 extends Schema {
 }
 
 const visualChannelModificationV1 = {
-  geojson: (vc, parents, accumulator) => {
+  geojson: (vc, parents) => {
     const [layer] = parents.slice(-1);
-    const isOld = !vc.hasOwnProperty('strokeColorField');
+    const isOld = !Object.prototype.hasOwnProperty.call(vc, 'strokeColorField');
     // make our best guess if this geojson layer contains point
     const isPoint =
-      vc.radiusField || layer.config.visConfig.radius !== LAYER_VIS_CONFIGS.radius.defaultValue;
+      vc.radiusField || layer.config.visConfig.radius !== LAYER_VIS_CONFIGS.radius?.defaultValue;
 
     if (isOld && !isPoint && layer.config.visConfig.stroked) {
       // if stroked is true, copy color config to stroke color config
@@ -454,11 +457,13 @@ class VisualChannelSchemaV1 extends Schema {
   }
 }
 const visConfigModificationV1 = {
-  point: (visConfig, parents, accumulated) => {
+  point: (visConfig, parents) => {
     const modified: modifiedType = {};
     const [layer] = parents.slice(-2, -1);
     const isOld =
-      !visConfig.hasOwnProperty('filled') && !visConfig.strokeColor && !visConfig.strokeColorRange;
+      !Object.prototype.hasOwnProperty.call(visConfig, 'filled') &&
+      !visConfig.strokeColor &&
+      !visConfig.strokeColorRange;
     if (isOld) {
       // color color & color range to stroke color
       modified.strokeColor = layer.config.color;
@@ -473,19 +478,19 @@ const visConfigModificationV1 = {
 
     return modified;
   },
-  geojson: (visConfig, parents, accumulated) => {
+  geojson: (visConfig, parents) => {
     // is points?
     const modified: modifiedType = {};
     const [layer] = parents.slice(-2, -1);
     const isOld =
       layer.visualChannels &&
-      !layer.visualChannels.hasOwnProperty('strokeColorField') &&
+      !Object.prototype.hasOwnProperty.call(layer.visualChannels, 'strokeColorField') &&
       !visConfig.strokeColor &&
       !visConfig.strokeColorRange;
     // make our best guess if this geojson layer contains point
     const isPoint =
       (layer.visualChannels && layer.visualChannels.radiusField) ||
-      (visConfig && visConfig.radius !== LAYER_VIS_CONFIGS.radius.defaultValue);
+      (visConfig && visConfig.radius !== LAYER_VIS_CONFIGS.radius?.defaultValue);
 
     if (isOld) {
       // color color & color range to stroke color
@@ -504,18 +509,24 @@ const visConfigModificationV1 = {
 
 class VisConfigSchemaV1 extends Schema {
   key = 'visConfig';
-
+  // layer.config.visConfig
+  // colorRange
   load(visConfig, parents, accumulated) {
     const [layer] = parents.slice(-2, -1);
     const modified = visConfigModificationV1[layer.type]
       ? visConfigModificationV1[layer.type](visConfig, parents, accumulated)
       : {};
+    const loadedVisConfig = {...visConfig, ...modified};
+
+    // backward compatibility, load colorRange and change the name to match new color Palette
+    ['colorRange', 'strokeColorRange'].forEach(prop => {
+      if (loadedVisConfig?.[prop]) {
+        loadedVisConfig[prop] = colorRangeBackwardCompatibility(loadedVisConfig[prop]);
+      }
+    });
 
     return {
-      visConfig: {
-        ...visConfig,
-        ...modified
-      }
+      visConfig: loadedVisConfig
     };
   }
 }
@@ -528,6 +539,7 @@ export const layerPropsV1 = {
     key: 'config',
     properties: {
       dataId: null,
+      columnMode: null,
       label: null,
       color: null,
       highlightColor: null,
@@ -570,9 +582,7 @@ export class LayerSchemaV0 extends Schema {
     };
   }
 
-  load(
-    layers: SavedLayer[] | MinSavedLayer[] | undefined
-  ): {
+  load(layers: SavedLayer[] | MinSavedLayer[] | undefined): {
     layers: ParsedLayer[] | undefined;
   } {
     return {
@@ -592,9 +602,9 @@ export class FilterSchemaV0 extends Schema {
         .map(filter => this.savePropertiesOrApplySchema(filter).filters)
     };
   }
-  load(
-    filters: SavedFilter[] | MinSavedFilter[] | undefined
-  ): {filters: ParsedFilter[] | undefined} {
+  load(filters: SavedFilter[] | MinSavedFilter[] | undefined): {
+    filters: ParsedFilter[] | undefined;
+  } {
     return {
       filters: filters
         ?.map(filter => this.loadPropertiesOrApplySchema(filter).filters)
@@ -660,13 +670,11 @@ const interactionPropsV1 = [...interactionPropsV0, 'geocoder', 'coordinate'];
 export class InteractionSchemaV1 extends Schema {
   key = 'interactionConfig';
 
-  save(
-    interactionConfig: InteractionConfig
-  ):
+  save(interactionConfig: InteractionConfig):
     | {
         interactionConfig: SavedInteractionConfig;
       }
-    | {} {
+    | Record<string, any> {
     // save config even if disabled,
     return Array.isArray(this.properties)
       ? {
@@ -683,12 +691,10 @@ export class InteractionSchemaV1 extends Schema {
         }
       : {};
   }
-  load(
-    interactionConfig: SavedInteractionConfig
-  ): {
+  load(interactionConfig: SavedInteractionConfig): {
     interactionConfig: Partial<SavedInteractionConfig>;
   } {
-    const modifiedConfig = interactionConfig;
+    const modifiedConfig = cloneDeep(interactionConfig);
     Object.keys(interactionConfig).forEach(configType => {
       if (configType === 'tooltip') {
         const fieldsToShow = modifiedConfig[configType].fieldsToShow;
@@ -767,6 +773,19 @@ export class SplitMapsSchema extends Schema {
     };
   }
 }
+export class PlotTypeSchema extends Schema {
+  key = 'plotType';
+  load(plotType) {
+    if (typeof plotType === 'string') {
+      return {
+        plotType: {
+          type: plotType
+        }
+      };
+    }
+    return {plotType};
+  }
+}
 
 export const effectPropsV1 = {
   id: null,
@@ -814,7 +833,9 @@ export class EffectsSchema extends Schema {
 
 export const filterPropsV1 = {
   ...filterPropsV0,
-  plotType: null,
+  plotType: new PlotTypeSchema({
+    version: VERSIONS.v1
+  }),
   animationWindow: null,
   yAxis: new DimensionFieldSchema({
     version: VERSIONS.v1,
@@ -831,7 +852,14 @@ export const filterPropsV1 = {
   layerId: null,
   speed: null,
 
-  enabled: null
+  // layer timeline
+  syncedWithLayerTimeline: null,
+  syncTimelineMode: null,
+
+  enabled: null,
+
+  invertTrendColor: null,
+  timezone: null
 };
 
 export const propertiesV0 = {
@@ -898,9 +926,7 @@ export class VisStateSchemaV1 extends Schema {
     return this.savePropertiesOrApplySchema(node, parents, accumulator);
   }
 
-  load(
-    node?: SavedVisState
-  ): {
+  load(node?: SavedVisState): {
     visState: ParsedVisState | undefined;
   } {
     // @ts-expect-error

@@ -4,7 +4,7 @@
 import {createStore, combineReducers, applyMiddleware, compose} from 'redux';
 import keplerGlReducer, {uiStateUpdaters, enhanceReduxMiddleware} from '@kepler.gl/reducers';
 import appReducer from './app-reducer';
-import window from 'global/window';
+import Window from 'global/window';
 
 const customizedKeplerGlReducer = keplerGlReducer
   .initialState({
@@ -33,7 +33,7 @@ const customizedKeplerGlReducer = keplerGlReducer
   })
   // handle additional actions
   .plugin({
-    HIDE_AND_SHOW_SIDE_PANEL: (state, action) => ({
+    HIDE_AND_SHOW_SIDE_PANEL: state => ({
       ...state,
       uiState: {
         ...state.uiState,
@@ -53,6 +53,6 @@ const enhancers = [applyMiddleware(...middlewares)];
 const initialState = {};
 
 // add redux devtools
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const composeEnhancers = Window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 export default createStore(reducers, initialState, composeEnhancers(...enhancers));

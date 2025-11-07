@@ -3,7 +3,7 @@
 
 /* eslint-disable max-statements */
 import test from 'tape';
-import cloneDeep from 'lodash.clonedeep';
+import cloneDeep from 'lodash/cloneDeep';
 
 import {
   tripDefaultLineWidth as defaultLineWidth,
@@ -273,7 +273,7 @@ test('#TripLayer -> renderLayer', t => {
       renderArgs: {
         animationConfig
       },
-      assert: (deckLayers, layer) => {
+      assert: deckLayers => {
         const ids = ['test_trip_layer_1'];
         t.deepEqual(
           deckLayers.map(l => l.id),
@@ -394,9 +394,8 @@ test('#TripLayer -> parseTripGeoJsonTimestamp', t => {
   dataToFeature1[3].geometry.coordinates[0][3] = undefined;
   dataToFeature1[4].geometry.coordinates[0][3] = 'a';
 
-  dataToFeature1[0].geometry.coordinates[
-    dataToFeature1[0].geometry.coordinates.length - 1
-  ][3] = NaN;
+  dataToFeature1[0].geometry.coordinates[dataToFeature1[0].geometry.coordinates.length - 1][3] =
+    NaN;
 
   const result = parseTripGeoJsonTimestamp(dataToFeature1);
 

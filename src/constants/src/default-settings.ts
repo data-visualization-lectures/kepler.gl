@@ -4,20 +4,28 @@
 import keyMirror from 'keymirror';
 
 import {
+  BaseMapStyle,
+  EffectDescription,
+  RGBAColor,
+  SyncTimelineMode,
+  BaseMapColorModes,
+  Merge
+} from '@kepler.gl/types';
+import {
   scaleLinear,
-  scaleQuantize,
-  scaleQuantile,
-  scaleOrdinal,
-  scaleSqrt,
   scaleLog,
-  scalePoint
+  scaleOrdinal,
+  scalePoint,
+  scaleQuantile,
+  scaleQuantize,
+  scaleSqrt,
+  scaleThreshold
 } from 'd3-scale';
 import {TOOLTIP_FORMAT_TYPES} from './tooltip';
-import {RGBAColor, EffectDescription, BaseMapStyle} from '@kepler.gl/types';
 
 export const ACTION_PREFIX = '@@kepler.gl/';
 export const KEPLER_UNFOLDED_BUCKET = 'https://studio-public-data.foursquare.com/statics/keplergl';
-export const BASEMAP_ICON_PREFIX = `${KEPLER_UNFOLDED_BUCKET}/geodude`;
+export const BASEMAP_ICON_PREFIX = `geodude`;
 export const DEFAULT_MAPBOX_API_URL = 'https://api.mapbox.com';
 export const TRANSITION_DURATION = 0;
 
@@ -95,7 +103,7 @@ export const SHARE_MAP_ID = 'shareMap';
 
 export const KEPLER_GL_NAME = 'kepler.gl';
 
-// __PACKAGE_VERSION__ is automatically injected by Babel/Webpack during the building process
+// __PACKAGE_VERSION__ is automatically injected by Babel/Esbuild during the build process
 // Since we are injecting this during the build process with babel
 // while developing VERSION is not defined, we capture the exception and return
 // an empty string which will allow us to retrieve the latest umd version
@@ -105,7 +113,7 @@ export const KEPLER_GL_WEBSITE = 'http://kepler.gl/';
 export const DIMENSIONS = {
   sidePanel: {
     width: 300,
-    margin: {top: 20, left: 20, bottom: 30, right: 20},
+    margin: {top: 12, left: 12, bottom: 12, right: 20},
     headerHeight: 96
   },
   mapControl: {
@@ -202,7 +210,7 @@ export const BACKGROUND_LAYER_GROUP: DEFAULT_LAYER_GROUP = {
 export const DEFAULT_LAYER_GROUPS: DEFAULT_LAYER_GROUP[] = [
   {
     slug: 'label',
-    filter: ({id}) => id.match(/(?=(label|place-|poi-))/),
+    filter: ({id, type}) => id.match(/(?=(label|place-|poi-))/) || type?.match(/(?=(symbol))/),
     defaultVisibility: true,
     isVisibilityToggleAvailable: true,
     isMoveToTopAvailable: true,
@@ -274,18 +282,85 @@ export const EMPTY_MAPBOX_STYLE = {
   layers: []
 };
 
+export const MAP_LIB_OPTIONS = {
+  MAPBOX: 'mapbox' as const,
+  MAPLIBRE: 'maplibre' as const
+};
+
+export type BaseMapLibraryType = 'mapbox' | 'maplibre';
+
 export const NO_BASEMAP_ICON = `${BASEMAP_ICON_PREFIX}/NO_BASEMAP.png`;
 
-export const DEFAULT_MAP_STYLES: BaseMapStyle[] = [
+export const DEFAULT_BASE_MAP_STYLE = 'dark-matter';
+
+type DefaultBaseMapStyle = Merge<
+  BaseMapStyle,
   {
-    id: NO_MAP_ID,
-    label: 'No Basemap',
-    url: '',
-    icon: NO_BASEMAP_ICON,
-    layerGroups: [BACKGROUND_LAYER_GROUP],
-    colorMode: BASE_MAP_COLOR_MODES.NONE,
-    style: EMPTY_MAPBOX_STYLE
+    colorMode: BaseMapColorModes;
+  }
+>;
+
+export const DEFAULT_NO_BASEMAP_STYLE: DefaultBaseMapStyle = {
+  id: NO_MAP_ID,
+  label: 'No Basemap',
+  url: '',
+  icon: NO_BASEMAP_ICON,
+  layerGroups: [BACKGROUND_LAYER_GROUP],
+  colorMode: BASE_MAP_COLOR_MODES.NONE,
+  style: EMPTY_MAPBOX_STYLE
+};
+
+export const DEFAULT_MAPBOX_STYLES: DefaultBaseMapStyle[] = [
+  {
+    id: 'dark',
+    label: 'Dark',
+    url: 'mapbox://styles/uberdata/cjoqbbf6l9k302sl96tyvka09',
+    icon: `${BASEMAP_ICON_PREFIX}/UBER_DARK_V2.png`,
+    layerGroups: DEFAULT_LAYER_GROUPS,
+    colorMode: BASE_MAP_COLOR_MODES.DARK,
+    complimentaryStyleId: 'light'
   },
+  {
+    id: 'light',
+    label: 'Light',
+    url: 'mapbox://styles/uberdata/cjoqb9j339k1f2sl9t5ic5bn4',
+    icon: `${BASEMAP_ICON_PREFIX}/UBER_LIGHT_V2.png`,
+    layerGroups: DEFAULT_LAYER_GROUPS,
+    colorMode: BASE_MAP_COLOR_MODES.LIGHT,
+    complimentaryStyleId: 'dark'
+  },
+  {
+    id: 'muted',
+    label: 'Muted Light',
+    url: 'mapbox://styles/uberdata/cjfyl03kp1tul2smf5v2tbdd4',
+    icon: `${BASEMAP_ICON_PREFIX}/UBER_MUTED_LIGHT.png`,
+    layerGroups: DEFAULT_LAYER_GROUPS,
+    colorMode: BASE_MAP_COLOR_MODES.LIGHT,
+    complimentaryStyleId: 'muted_night'
+  },
+  {
+    id: 'muted_night',
+    label: 'Muted Night',
+    url: 'mapbox://styles/uberdata/cjfxhlikmaj1b2soyzevnywgs',
+    icon: `${BASEMAP_ICON_PREFIX}/UBER_MUTED_NIGHT.png`,
+    layerGroups: DEFAULT_LAYER_GROUPS,
+    colorMode: BASE_MAP_COLOR_MODES.DARK,
+    complimentaryStyleId: 'muted'
+  }
+];
+
+export const DEFAULT_MAPBOX_SATELITE_STYLES: DefaultBaseMapStyle[] = [
+  {
+    id: 'satellite',
+    label: 'Satellite with streets',
+    url: `mapbox://styles/mapbox/satellite-streets-v11`,
+    icon: `${BASEMAP_ICON_PREFIX}/UBER_SATELLITE.png`,
+    layerGroups: DEFAULT_LAYER_GROUPS,
+    colorMode: BASE_MAP_COLOR_MODES.NONE
+  }
+];
+
+export const DEFAULT_MAPLIBRE_STYLES: DefaultBaseMapStyle[] = [
   {
     id: 'dark-matter',
     label: 'DarkMatter',
@@ -294,15 +369,6 @@ export const DEFAULT_MAP_STYLES: BaseMapStyle[] = [
     layerGroups: DEFAULT_LAYER_GROUPS,
     colorMode: BASE_MAP_COLOR_MODES.DARK,
     complimentaryStyleId: 'positron'
-  },
-  {
-    id: 'dark-matter-nolabels',
-    label: 'DarkMatterNoLabels',
-    url: 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json',
-    icon: `${BASEMAP_ICON_PREFIX}/DARKMATTER_NOLABELS.png`,
-    layerGroups: DEFAULT_LAYER_GROUPS,
-    colorMode: BASE_MAP_COLOR_MODES.DARK,
-    complimentaryStyleId: 'positron-nolabels'
   },
   {
     id: 'positron',
@@ -314,15 +380,6 @@ export const DEFAULT_MAP_STYLES: BaseMapStyle[] = [
     complimentaryStyleId: 'dark-matter'
   },
   {
-    id: 'positron-nolabels',
-    label: 'PositronNoLabels',
-    url: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
-    icon: `${BASEMAP_ICON_PREFIX}/POSITRON_NOLABELS.png`,
-    layerGroups: DEFAULT_LAYER_GROUPS,
-    colorMode: BASE_MAP_COLOR_MODES.LIGHT,
-    complimentaryStyleId: 'dark-matter-nolabels'
-  },
-  {
     id: 'voyager',
     label: 'Voyager',
     url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
@@ -330,16 +387,14 @@ export const DEFAULT_MAP_STYLES: BaseMapStyle[] = [
     layerGroups: DEFAULT_LAYER_GROUPS,
     colorMode: BASE_MAP_COLOR_MODES.LIGHT,
     complimentaryStyleId: 'dark-matter'
-  },
-  {
-    id: 'voyager-nolabels',
-    label: 'VoyagerNoLabels',
-    url: 'https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json',
-    icon: `${BASEMAP_ICON_PREFIX}/VOYAGER_NOLABELS.png`,
-    layerGroups: DEFAULT_LAYER_GROUPS,
-    colorMode: BASE_MAP_COLOR_MODES.LIGHT,
-    complimentaryStyleId: 'dark-matter-nolabels'
   }
+];
+
+export const DEFAULT_MAP_STYLES = [
+  DEFAULT_NO_BASEMAP_STYLE,
+  ...DEFAULT_MAPLIBRE_STYLES,
+  ...DEFAULT_MAPBOX_SATELITE_STYLES,
+  ...DEFAULT_MAPBOX_STYLES
 ];
 
 export const GEOJSON_FIELDS = {
@@ -382,17 +437,48 @@ export const FILTER_VIEW_TYPES = keyMirror({
 
 export const DEFAULT_FILTER_VIEW_TYPE = FILTER_VIEW_TYPES.side;
 
-export const SCALE_TYPES = keyMirror({
+export type SCALE_TYPES_DEF = {
+  ordinal: 'ordinal';
+  quantile: 'quantile';
+  quantize: 'quantize';
+  linear: 'linear';
+  sqrt: 'sqrt';
+  log: 'log';
+  point: 'point';
+  threshold: 'threshold';
+  custom: 'custom';
+  customOrdinal: 'customOrdinal';
+};
+
+export const SCALE_TYPES: SCALE_TYPES_DEF = keyMirror({
   ordinal: null,
   quantile: null,
   quantize: null,
   linear: null,
   sqrt: null,
   log: null,
-
+  threshold: null,
+  custom: null,
+  customOrdinal: null,
   // ordinal domain to linear range
   point: null
 });
+export const SCALE_TYPE_NAMES: {[key in keyof SCALE_TYPES_DEF]: string} = {
+  ordinal: 'Ordinal',
+  quantile: 'Quantile',
+  quantize: 'Quantize',
+  linear: 'Linear',
+  sqrt: 'Sqrt',
+  log: 'Log',
+  threshold: 'Threshold',
+  custom: 'Custom Breaks',
+  customOrdinal: 'Custom Ordinal',
+  point: 'Point'
+};
+
+export type SCALE_FUNC_TYPE = {
+  [key in keyof SCALE_TYPES_DEF]: () => number;
+};
 
 export const SCALE_FUNC = {
   [SCALE_TYPES.linear]: scaleLinear,
@@ -401,7 +487,10 @@ export const SCALE_FUNC = {
   [SCALE_TYPES.ordinal]: scaleOrdinal,
   [SCALE_TYPES.sqrt]: scaleSqrt,
   [SCALE_TYPES.log]: scaleLog,
-  [SCALE_TYPES.point]: scalePoint
+  [SCALE_TYPES.point]: scalePoint,
+  [SCALE_TYPES.threshold]: scaleThreshold,
+  [SCALE_TYPES.custom]: scaleThreshold,
+  [SCALE_TYPES.customOrdinal]: scaleOrdinal
 };
 
 export const ALL_FIELD_TYPES = keyMirror({
@@ -415,7 +504,8 @@ export const ALL_FIELD_TYPES = keyMirror({
   point: null,
   array: null,
   object: null,
-  geoarrow: null
+  geoarrow: null,
+  h3: null
 });
 
 // Data Table
@@ -435,18 +525,24 @@ export const TABLE_OPTION = keyMirror({
   FORMAT_COLUMN: null
 });
 
-export const TABLE_OPTION_LIST = [
+export type TableOption = {
+  value: 'SORT_ASC' | 'SORT_DES' | 'UNSORT' | 'PIN' | 'UNPIN' | 'COPY' | 'FORMAT_COLUMN';
+  display: string;
+  icon: string;
+  condition?: (props: any) => boolean;
+};
+export const TABLE_OPTION_LIST: TableOption[] = [
   {
     value: TABLE_OPTION.SORT_ASC,
     display: 'Sort Ascending',
     icon: 'ArrowUp',
-    condition: props => props.sortMode !== SORT_ORDER.ASCENDING
+    condition: props => props.sortTableColumn && props.sortMode !== SORT_ORDER.ASCENDING
   },
   {
     value: TABLE_OPTION.SORT_DES,
     display: 'Sort Descending',
     icon: 'ArrowDown',
-    condition: props => props.sortMode !== SORT_ORDER.DESCENDING
+    condition: props => props.sortTableColumn && props.sortMode !== SORT_ORDER.DESCENDING
   },
   {
     value: TABLE_OPTION.UNSORT,
@@ -467,7 +563,12 @@ export const TABLE_OPTION_LIST = [
     condition: props => props.isPinned
   },
   {value: TABLE_OPTION.COPY, display: 'Copy Column', icon: 'Clipboard'},
-  {value: TABLE_OPTION.FORMAT_COLUMN, display: 'Format Column', icon: 'Hash'}
+  {
+    value: TABLE_OPTION.FORMAT_COLUMN,
+    display: 'Format Column',
+    icon: 'Hash',
+    condition: props => props.setDisplayFormat
+  }
 ];
 
 const YELLOW = '248, 194, 28';
@@ -526,6 +627,10 @@ export const FIELD_TYPE_DISPLAY = {
   [ALL_FIELD_TYPES.object]: {
     label: 'object',
     color: GREEN2
+  },
+  [ALL_FIELD_TYPES.h3]: {
+    label: 'h3',
+    color: BLUE
   }
 };
 
@@ -586,21 +691,31 @@ export const AGGREGATION_TYPE_OPTIONS: {id: string; label: string}[] = Object.en
 }));
 
 export const linearFieldScaleFunctions = {
-  [CHANNEL_SCALES.color]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile],
+  [CHANNEL_SCALES.color]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile, SCALE_TYPES.custom],
   [CHANNEL_SCALES.radius]: [SCALE_TYPES.sqrt],
   [CHANNEL_SCALES.size]: [SCALE_TYPES.linear, SCALE_TYPES.sqrt, SCALE_TYPES.log]
 };
 
+const DEFAULT_AGGREGATION_COLOR_SCALES = [
+  SCALE_TYPES.quantize,
+  SCALE_TYPES.quantile,
+  SCALE_TYPES.custom
+];
+
 export const linearFieldAggrScaleFunctions = {
-  [CHANNEL_SCALES.colorAggr]: {
-    [AGGREGATION_TYPES.average]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile],
-    [AGGREGATION_TYPES.maximum]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile],
-    [AGGREGATION_TYPES.minimum]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile],
-    [AGGREGATION_TYPES.median]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile],
-    [AGGREGATION_TYPES.stdev]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile],
-    [AGGREGATION_TYPES.sum]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile],
-    [AGGREGATION_TYPES.variance]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile]
-  },
+  [CHANNEL_SCALES.colorAggr]: [
+    AGGREGATION_TYPES.average,
+    AGGREGATION_TYPES.maximum,
+    AGGREGATION_TYPES.minimum,
+    AGGREGATION_TYPES.median,
+    AGGREGATION_TYPES.stdev,
+    AGGREGATION_TYPES.sum,
+    AGGREGATION_TYPES.variance,
+    AGGREGATION_TYPES.count
+  ].reduce((prev, cur) => {
+    prev[cur] = DEFAULT_AGGREGATION_COLOR_SCALES;
+    return prev;
+  }, {}),
 
   [CHANNEL_SCALES.sizeAggr]: {
     [AGGREGATION_TYPES.average]: [SCALE_TYPES.linear, SCALE_TYPES.sqrt, SCALE_TYPES.log],
@@ -614,7 +729,7 @@ export const linearFieldAggrScaleFunctions = {
 };
 
 export const ordinalFieldScaleFunctions = {
-  [CHANNEL_SCALES.color]: [SCALE_TYPES.ordinal],
+  [CHANNEL_SCALES.color]: [SCALE_TYPES.ordinal, SCALE_TYPES.customOrdinal],
   [CHANNEL_SCALES.radius]: [SCALE_TYPES.point],
   [CHANNEL_SCALES.size]: [SCALE_TYPES.point]
 };
@@ -646,7 +761,7 @@ export const notSupportAggrOpts = {
  */
 export const DEFAULT_AGGREGATION = {
   [CHANNEL_SCALES.colorAggr]: {
-    [AGGREGATION_TYPES.count]: [SCALE_TYPES.quantize, SCALE_TYPES.quantile]
+    [AGGREGATION_TYPES.count]: DEFAULT_AGGREGATION_COLOR_SCALES
   },
   [CHANNEL_SCALES.sizeAggr]: {
     [AGGREGATION_TYPES.count]: [SCALE_TYPES.linear, SCALE_TYPES.sqrt, SCALE_TYPES.log]
@@ -701,7 +816,13 @@ export const FIELD_OPTS = {
   [ALL_FIELD_TYPES.integer]: {
     type: 'numerical',
     scale: {
-      ...linearFieldScaleFunctions,
+      ...{
+        ...linearFieldScaleFunctions,
+        [CHANNEL_SCALES.color]: [
+          ...linearFieldScaleFunctions[CHANNEL_SCALES.color],
+          SCALE_TYPES.customOrdinal
+        ]
+      },
       ...linearFieldAggrScaleFunctions
     },
     format: {
@@ -742,7 +863,7 @@ export const FIELD_OPTS = {
       ...notSupportAggrOpts
     },
     format: {
-      legend: d => '...',
+      legend: () => '...',
       tooltip: []
     }
   },
@@ -753,7 +874,7 @@ export const FIELD_OPTS = {
       ...notSupportAggrOpts
     },
     format: {
-      legend: d => '...',
+      legend: () => '...',
       tooltip: []
     }
   },
@@ -761,7 +882,7 @@ export const FIELD_OPTS = {
     type: 'numerical',
     scale: {},
     format: {
-      legend: d => '...',
+      legend: () => '...',
       tooltip: []
     }
   },
@@ -769,7 +890,18 @@ export const FIELD_OPTS = {
     type: 'numerical',
     scale: {},
     format: {
-      legend: d => '...',
+      legend: () => '...',
+      tooltip: []
+    }
+  },
+  [ALL_FIELD_TYPES.h3]: {
+    type: 'h3',
+    scale: {
+      ...notSupportedScaleOpts,
+      ...notSupportAggrOpts
+    },
+    format: {
+      legend: () => '...',
       tooltip: []
     }
   }
@@ -791,6 +923,9 @@ export const DEFAULT_LAYER_COLOR = {
   dropoff_lat: '#FF991F',
   request_lat: '#52A353'
 };
+
+export const DEFAULT_LAYER_COLOR_PALETTE = 'Global Warming';
+export const DEFAULT_LAYER_COLOR_PALETTE_STEPS = 6;
 
 // let user pass in default tooltip fields
 export const DEFAULT_TOOLTIP_FIELDS: any[] = [];
@@ -848,28 +983,6 @@ export const EXPORT_IMG_RATIOS = keyMirror({
   CUSTOM: null
 });
 
-export type ExportImage = {
-  ratio: keyof typeof EXPORT_IMG_RATIOS;
-  resolution: keyof typeof RESOLUTIONS;
-  legend: boolean;
-  mapH: number;
-  mapW: number;
-  imageSize: {
-    zoomOffset: number;
-    scale: number;
-    imageW: number;
-    imageH: number;
-  };
-  // exporting state
-  imageDataUri: string;
-  exporting: boolean;
-  processing: boolean;
-  error: Error | false;
-  escapeXhtmlForWebpack?: boolean;
-  // This field was not in the .d.ts file
-  center: boolean;
-};
-
 export type ImageRatioOption = {
   id: keyof typeof EXPORT_IMG_RATIOS;
   label: string;
@@ -891,7 +1004,7 @@ export const CustomRatioOption: ImageRatioOption = {
 export const FourByThreeRatioOption: ImageRatioOption = {
   id: EXPORT_IMG_RATIOS.FOUR_BY_THREE,
   label: 'modal.exportImage.ratio4_3',
-  getSize: (screenW, screenH) => ({
+  getSize: screenW => ({
     width: screenW,
     height: Math.round(screenW * 0.75)
   })
@@ -899,7 +1012,7 @@ export const FourByThreeRatioOption: ImageRatioOption = {
 export const SixteenByNineRatioOption: ImageRatioOption = {
   id: EXPORT_IMG_RATIOS.SIXTEEN_BY_NINE,
   label: 'modal.exportImage.ratio16_9',
-  getSize: (screenW, screenH) => ({
+  getSize: screenW => ({
     width: screenW,
     height: Math.round(screenW * 0.5625)
   })
@@ -1113,7 +1226,8 @@ export const MAP_INFO_CHARACTER = {
 // Load data
 export const LOADING_METHODS = keyMirror({
   upload: null,
-  storage: null
+  storage: null,
+  tileset: null
 });
 
 export const DEFAULT_FEATURE_FLAGS = {};
@@ -1123,7 +1237,8 @@ export const DATASET_FORMATS = keyMirror({
   geojson: null,
   csv: null,
   keplergl: null,
-  arrow: null
+  arrow: null,
+  duckdb: null
 });
 
 export const MAP_CONTROLS = keyMirror({
@@ -1133,7 +1248,8 @@ export const MAP_CONTROLS = keyMirror({
   splitMap: null,
   mapDraw: null,
   mapLocale: null,
-  effect: null
+  effect: null,
+  aiAssistant: null
 });
 
 /**
@@ -1170,7 +1286,7 @@ export const dataTestIds: Record<string, string> = {
 
 // Effects
 export const DEFAULT_TIMEZONE = 'UTC';
-export const DEFAULT_POST_PROCESSING_EFFECT_TYPE: string = 'ink';
+export const DEFAULT_POST_PROCESSING_EFFECT_TYPE = 'ink';
 
 export const DEFAULT_LIGHT_COLOR: [number, number, number] = [255, 255, 255];
 export const DEFAULT_LIGHT_INTENSITY = 1;
@@ -1178,9 +1294,9 @@ export const DEFAULT_SHADOW_INTENSITY = 0.5;
 export const DEFAULT_SHADOW_COLOR: [number, number, number] = [0, 0, 0];
 
 export const LIGHT_AND_SHADOW_EFFECT_TIME_MODES = {
-  pick: 'pick' as 'pick',
-  current: 'current' as 'current',
-  animation: 'animation' as 'animation'
+  pick: 'pick' as const,
+  current: 'current' as const,
+  animation: 'animation' as const
 };
 export type LightAndShadowEffectTimeMode = 'pick' | 'current' | 'animation';
 export const DEFAULT_LIGHT_AND_SHADOW_PROPS: {
@@ -1435,3 +1551,40 @@ export type EffectType =
   | 'magnify'
   | 'hexagonalPixelate'
   | 'lightAndShadow';
+
+export const SYNC_TIMELINE_MODES: Record<string, SyncTimelineMode> = {
+  start: 0,
+  end: 1
+};
+
+export const GEOARROW_METADATA_KEY = 'ARROW:extension:name';
+
+/**
+ * Enum holding GeoArrow extension type names
+ */
+export enum GEOARROW_EXTENSIONS {
+  POINT = 'geoarrow.point',
+  LINESTRING = 'geoarrow.linestring',
+  POLYGON = 'geoarrow.polygon',
+  MULTIPOINT = 'geoarrow.multipoint',
+  MULTILINESTRING = 'geoarrow.multilinestring',
+  MULTIPOLYGON = 'geoarrow.multipolygon',
+  WKB = 'geoarrow.wkb'
+}
+
+export const LOADERS_CDN_VERSION = '4.3.2';
+export const LOADERS_CDN_URL = 'https://unpkg.com/@loaders.gl';
+
+export const getLoaderOptions = () => {
+  return {
+    mvt: {
+      workerUrl: `${LOADERS_CDN_URL}/mvt@${LOADERS_CDN_VERSION}/dist/mvt-worker.js`
+    },
+    'quantized-mesh': {
+      workerUrl: `${LOADERS_CDN_URL}/terrain@${LOADERS_CDN_VERSION}/dist/quantized-mesh-worker.js`
+    },
+    npy: {
+      workerUrl: `${LOADERS_CDN_URL}/textures@${LOADERS_CDN_VERSION}/dist/npy-worker.js`
+    }
+  };
+};

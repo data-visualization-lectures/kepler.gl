@@ -3,8 +3,9 @@
 
 import React, {Component, ElementType} from 'react';
 import classNames from 'classnames';
-import styled from 'styled-components';
+import styled, {IStyledComponent} from 'styled-components';
 import {INIT_FILTER_ITEMS_IN_DROPDOWN} from '@kepler.gl/constants';
+import {BaseComponentProps} from '../../types';
 
 const LEFT_BUTTON = 0;
 
@@ -17,8 +18,15 @@ export const classList = {
   listItemFixed: 'list__item__fixed'
 };
 
+export type ListItemProps<Option> = {
+  value: Option;
+  displayOption: (opt: Option) => string;
+  disabled?: boolean;
+  light?: boolean;
+};
+
 const defaultDisplay = d => d;
-export const ListItem = ({value, displayOption = defaultDisplay, disabled, light}) => {
+export const ListItem = ({value, displayOption = defaultDisplay, disabled}: ListItemProps<any>) => {
   const displayValue = displayOption(value);
   return (
     <span title={displayValue} className={classNames(classList.listItemAnchor, {disabled})}>
@@ -27,39 +35,45 @@ export const ListItem = ({value, displayOption = defaultDisplay, disabled, light
   );
 };
 
-interface DropdownListWrapperProps {
-  light?: boolean;
-}
+export type DropdownListWrapperProps = BaseComponentProps & {
+  $light?: boolean;
+};
 
-const DropdownListWrapper = styled.div<DropdownListWrapperProps>`
+const DropdownListWrapper: IStyledComponent<
+  'web',
+  DropdownListWrapperProps
+> = styled.div<DropdownListWrapperProps>`
   background-color: ${props =>
-    props.light ? props.theme.dropdownListBgdLT : props.theme.dropdownListBgd};
+    props.$light ? props.theme.dropdownListBgdLT : props.theme.dropdownListBgd};
   border-top: 1px solid
     ${props =>
-      props.light ? props.theme.dropdownListBorderTopLT : props.theme.dropdownListBorderTop};
-  ${props => (props.light ? props.theme.dropdownListLT : props.theme.dropdownList)};
+      props.$light ? props.theme.dropdownListBorderTopLT : props.theme.dropdownListBorderTop};
+  ${props => (props.$light ? props.theme.dropdownListLT : props.theme.dropdownList)};
 `;
 
 const DropdownFooterWrapper = styled.div`
   height: '0px';
 `;
 
+type Option = string | number | boolean | object | any;
+// TODO: make Option a generic type
 interface DropdownListProps {
-  options?: any[];
+  options?: Option[];
   allowCustomValues?: number;
   customClasses?: {listHeader?: string; listItem?: string; results?: string};
   customValues?: any[];
   customListItemComponent?: ElementType;
   customListHeaderComponent?: ElementType;
   selectionIndex?: number;
-  onOptionSelected?: Function;
-  displayOption?: Function;
+  onOptionSelected?: (option: Option, event: React.MouseEvent) => void;
+  displayOption?: (option: Option) => string;
   defaultClassNames?: boolean;
   areResultsTruncated?: boolean;
   resultsTruncatedMessage?: string;
-  listItemComponent?: Function;
+  listItemComponent?: ElementType;
   light?: boolean;
   fixedOptions?: any[];
+  selectedItems?: any[]; // Passed through by Typeahead
 }
 
 interface DropdownListState {
@@ -74,7 +88,9 @@ export default class DropdownList extends Component<DropdownListProps, DropdownL
     allowCustomValues: 0,
     customValues: [],
     displayOption: defaultDisplay,
-    onOptionSelected: () => {},
+    onOptionSelected: () => {
+      return;
+    },
     defaultClassNames: true,
     selectionIndex: null
   };
@@ -111,7 +127,7 @@ export default class DropdownList extends Component<DropdownListProps, DropdownL
     }
   }
 
-  getSnapshotBeforeUpdate(prevProps: DropdownListProps, prevState: DropdownListState) {
+  getSnapshotBeforeUpdate(prevProps: DropdownListProps) {
     if (prevProps.options !== this.props.options) {
       // check if user searching, reset state.options at the first time
       const options = this._getOptions(0);
@@ -121,11 +137,15 @@ export default class DropdownList extends Component<DropdownListProps, DropdownL
   }
 
   // prevent console warning: getSnapshotBeforeUpdate() should be used with componentDidUpdate().
-  componentDidUpdate(prevProps, prevState, snapshot) {}
+  componentDidUpdate() {
+    return;
+  }
 
   componentWillUnmount() {
     if (this.loadingRef.current) {
-      this.observer?.unobserve(this.loadingRef.current);
+      this.observer?.unobserve(this.loadingRef?.current);
+      this.page = 0;
+      this.prevY = 0;
     }
   }
 
@@ -192,7 +212,7 @@ export default class DropdownList extends Component<DropdownListProps, DropdownL
     return (
       <DropdownListWrapper
         className={classNames(classList.list, this.props.customClasses?.results)}
-        light={light}
+        $light={light}
       >
         {this.props.customListHeaderComponent ? (
           <div className={classNames(classList.listHeader, this.props.customClasses?.listHeader)}>
@@ -216,7 +236,7 @@ export default class DropdownList extends Component<DropdownListProps, DropdownL
                 onMouseDown={e => this._onClick(value, e)}
                 onClick={e => this._onClick(value, e)}
               >
-                <CustomListItemComponent value={value} displayOption={display} />
+                <CustomListItemComponent value={value} displayOption={display} light={light} />
               </div>
             ))}
           </div>
@@ -227,7 +247,10 @@ export default class DropdownList extends Component<DropdownListProps, DropdownL
             className={classNames(
               classList.listItem,
               {
-                hover: this.props.selectionIndex === i + valueOffset
+                hover: this.props.selectionIndex === i + valueOffset,
+                selected: (this.props.selectedItems || []).find(
+                  item => display(item) === display(value)
+                )
               },
               this.props.customClasses?.listItem
             )}

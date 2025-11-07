@@ -3988,6 +3988,7 @@ export const sampleTripDataConfig = {
             isVisible: true,
             visConfig: {
               colorRange: {
+                colors: ['#FF000', '#00FF00', '#0000FF', '#555555', '#111111', '#222222'],
                 colorMap: [
                   ['apple tree', '#FF000'],
                   ['banana peel', '#00FF00'],
@@ -4003,7 +4004,8 @@ export const sampleTripDataConfig = {
             colorField: {
               name: 'fare_type',
               type: 'string'
-            }
+            },
+            colorScale: 'custom'
           }
         },
         {
@@ -4053,7 +4055,7 @@ export const sampleTripDataConfig = {
         {
           dataId: 'test_trip_data',
           name: 'tpep_pickup_datetime',
-          enlarged: true
+          view: 'enlarged'
         },
         {
           dataId: 'test_trip_data',
@@ -4086,8 +4088,7 @@ export const sampleTripDataConfig = {
         '41fv96u': {
           accessToken: null,
           custom: true,
-          icon:
-            'https://api.mapbox.com/styles/v1/MAPBOX_USER/cjg0ks54x300a2squ8fr9vhvq/static/-122.3391,37.7922,9,0,0/400x300?access_token=ACCESS_TOKEN&logo=false&attribution=false',
+          icon: 'https://api.mapbox.com/styles/v1/MAPBOX_USER/cjg0ks54x300a2squ8fr9vhvq/static/-122.3391,37.7922,9,0,0/400x300?access_token=ACCESS_TOKEN&logo=false&attribution=false',
           id: '41fv96u',
           label: 'Outdoors',
           url: 'mapbox://styles/MAPBOX_USER/cjhnxdcfy4ug62sn6qdfjutob'

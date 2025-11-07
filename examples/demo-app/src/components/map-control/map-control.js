@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import React, {useState} from 'react';
 import classnames from 'classnames';
+import React, {useState} from 'react';
+import Markdown from 'markdown-to-jsx';
 import styled from 'styled-components';
-import {Icons, IconRoundSmall, MapControlButton} from '@kepler.gl/components';
+import {useLocalStorage} from 'usehooks-ts';
 
-import ReactMarkdown from 'react-markdown';
+import {Icons, IconRoundSmall, LinkRenderer, MapControlButton} from '@kepler.gl/components';
+import {getApplicationConfig} from '@kepler.gl/utils';
 
 const StyledFloatingPanel = styled.div`
   margin-right: 12px;
-  margin-top: 20px;
+  margin-top: 12px;
 `;
 
 const StyledProjectPanel = styled.div`
   background: ${props => props.theme.panelBackground};
-  padding: 16px 20px;
+  padding: 16px 16px 16px 20px;
   width: 280px;
   box-shadow: ${props => props.theme.panelBoxShadow};
 
@@ -39,7 +41,7 @@ const StyledProjectPanel = styled.div`
   }
 
   .project-links {
-    margin-top: 20px;
+    margin-top: 16px;
     width: 100%;
     display: flex;
     align-items: center;
@@ -65,7 +67,7 @@ const StyledPanelAction = styled.div`
     }
   }
 
-  :hover {
+  &:hover {
     cursor: pointer;
     a {
       color: ${props => props.theme.textColorHl};
@@ -87,14 +89,6 @@ const CloseButton = ({onClick}) => (
     <Icons.Close height="16px" onClick={onClick} />
   </IconRoundSmall>
 );
-
-const LinkRenderer = props => {
-  return (
-    <a href={props.href} target="_blank" rel="noopener noreferrer">
-      {props.children}
-    </a>
-  );
-};
 
 // convert https://raw.githubusercontent.com/keplergl/kepler.gl-data/master/nyctrips/config.json
 // to https://github.com/keplergl/kepler.gl-data/blob/master/movement_pittsburgh/config.json
@@ -118,15 +112,24 @@ export function SampleMapPanel(props) {
             <CloseButton onClick={() => setActive(false)} />
           </div>
           <div className="project-description">
-            <ReactMarkdown
-              source={props.currentSample.detail || props.currentSample.description}
-              renderers={{link: LinkRenderer}}
-            />
+            <Markdown
+              options={{
+                overrides: {
+                  a: {
+                    component: LinkRenderer
+                  }
+                }
+              }}
+            >
+              {props.currentSample.detail || props.currentSample.description}
+            </Markdown>
           </div>
           <div className="project-links">
             <LinkButton
               label="Data"
-              href={getURL(props.currentSample.dataUrl)}
+              href={getURL(
+                props.currentSample.dataUrl || props.currentSample.remoteDatasetConfigUrl
+              )}
               iconComponent={Icons.Files}
               height="15px"
             />
@@ -136,6 +139,64 @@ export function SampleMapPanel(props) {
               iconComponent={Icons.CodeAlt}
               height="17px"
             />
+          </div>
+        </StyledProjectPanel>
+      ) : (
+        <MapControlButton
+          className={classnames('map-control-button', 'info-panel', {isActive})}
+          onClick={e => {
+            e.preventDefault();
+            setActive(true);
+          }}
+        >
+          <Icons.Docs height="18px" />
+        </MapControlButton>
+      )}
+    </StyledFloatingPanel>
+  );
+}
+
+export function BannerMapPanel() {
+  const [isActive, setActive] = useState(true);
+  // Once the banner is closed, the user won't see the banner during next sessions.
+  const [showBanner, setShowBanner] = useLocalStorage(
+    'show-duckdb-preview-banner',
+    getApplicationConfig().showReleaseBanner
+  );
+  const [wasVisible] = useState(showBanner);
+
+  if (!showBanner && !wasVisible) {
+    return null;
+  }
+
+  return (
+    <StyledFloatingPanel>
+      {isActive ? (
+        <StyledProjectPanel>
+          <div className="project-title">
+            <div>{'Kepler.gl 3.1 + DuckDB is here!'}</div>
+
+            <CloseButton
+              onClick={() => {
+                setShowBanner(false);
+                setActive(false);
+              }}
+            />
+          </div>
+          <div className="project-description">
+            <Markdown
+              options={{
+                overrides: {
+                  a: {
+                    component: LinkRenderer
+                  }
+                }
+              }}
+            >
+              {
+                '[Click here](https://kepler-preview.foursquare.com) to check out the preview of Kepler.gl 3.1 with DuckDB enabled!'
+              }
+            </Markdown>
           </div>
         </StyledProjectPanel>
       ) : (

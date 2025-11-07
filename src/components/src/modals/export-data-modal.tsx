@@ -2,8 +2,12 @@
 // Copyright contributors to the kepler.gl project
 
 import React, {Component} from 'react';
+import {injectIntl, IntlShape} from 'react-intl';
 
-import {EXPORT_DATA_TYPE_OPTIONS} from '@kepler.gl/constants';
+import {DatasetType, EXPORT_DATA_TYPE_OPTIONS} from '@kepler.gl/constants';
+import {FormattedMessage} from '@kepler.gl/localization';
+import {Datasets} from '@kepler.gl/table';
+
 import {FileType} from '../common/icons';
 import {
   StyledExportSection,
@@ -12,9 +16,7 @@ import {
   StyledType,
   CheckMark
 } from '../common/styled-components';
-import {injectIntl, IntlShape} from 'react-intl';
-import {FormattedMessage} from '@kepler.gl/localization';
-import {Datasets} from '@kepler.gl/table';
+import {StyledWarning} from './export-map-modal/components';
 
 const getDataRowCount = (
   datasets: Datasets,
@@ -87,6 +89,16 @@ const ExportDataModalFactory = () => {
         onChangeExportFiltered,
         intl
       } = this.props;
+
+      const exportAllDatasets = selectedDataset ? !datasets[selectedDataset] : true;
+      const showTiledDatasetWarning = Object.keys(datasets).some(datasetId => {
+        return (
+          (datasets[datasetId].type === DatasetType.VECTOR_TILE ||
+            datasets[datasetId].type === DatasetType.RASTER_TILE ||
+            datasets[datasetId].type === DatasetType.WMS_TILE) &&
+          (selectedDataset === datasetId || exportAllDatasets)
+        );
+      });
 
       return (
         <StyledModalContent className="export-data-modal">
@@ -172,6 +184,13 @@ const ExportDataModalFactory = () => {
                 </StyledFilteredOption>
               </div>
             </StyledExportSection>
+            {showTiledDatasetWarning ? (
+              <div className="title">
+                <StyledWarning>
+                  <FormattedMessage id={'modal.exportData.tiledDatasetWarning'} />
+                </StyledWarning>
+              </div>
+            ) : null}
           </div>
         </StyledModalContent>
       );

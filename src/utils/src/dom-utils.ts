@@ -2,12 +2,12 @@
 // Copyright contributors to the kepler.gl project
 
 import Console from 'global/console';
-import window from 'global/window';
+import Window from 'global/window';
 import document from 'global/document';
 import {IMAGE_EXPORT_ERRORS} from '@kepler.gl/constants';
 
 export function processClone(original, clone) {
-  if (!(clone instanceof window.Element)) {
+  if (!(clone instanceof Window.Element)) {
     return clone;
   }
 
@@ -35,7 +35,7 @@ export function processClone(original, clone) {
   }
 
   function cloneStyle(og, cln) {
-    const originalStyle = window.getComputedStyle(og);
+    const originalStyle = Window.getComputedStyle(og);
     copyStyle(originalStyle, cln.style);
   }
 
@@ -52,9 +52,7 @@ export function processClone(original, clone) {
     };
 
     const formatCssProperties = stl2 => {
-      return `${asArray(stl2)
-        .map(formatProperty)
-        .join('; ')};`;
+      return `${asArray(stl2).map(formatProperty).join('; ')};`;
     };
 
     const selector = `.${cln}:${elm}`;
@@ -64,7 +62,7 @@ export function processClone(original, clone) {
   }
 
   function clonePseudoElement(org, cln, element) {
-    const style = window.getComputedStyle(org, element);
+    const style = Window.getComputedStyle(org, element);
     const content = style.getPropertyValue('content');
 
     if (content === '' || content === 'none') {
@@ -83,15 +81,15 @@ export function processClone(original, clone) {
   }
 
   function copyUserInput([og, cln]) {
-    if (og instanceof window.HTMLTextAreaElement) cln.innerHTML = og.value;
-    if (og instanceof window.HTMLInputElement) cln.setAttribute('value', og.value);
+    if (og instanceof Window.HTMLTextAreaElement) cln.innerHTML = og.value;
+    if (og instanceof Window.HTMLInputElement) cln.setAttribute('value', og.value);
   }
 
   function fixSvg(cln) {
-    if (!(cln instanceof window.SVGElement)) return;
+    if (!(cln instanceof Window.SVGElement)) return;
     cln.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
-    if (!(cln instanceof window.SVGRectElement)) return;
+    if (!(cln instanceof Window.SVGRectElement)) return;
     ['width', 'height'].forEach(attribute => {
       const value = cln.getAttribute(attribute);
       if (!value) return;
@@ -100,27 +98,30 @@ export function processClone(original, clone) {
     });
   }
 
-  return Promise.resolve([original, clone])
-    .then(([og, cln]) => {
-      cloneStyle(og, cln);
-      return [og, cln];
-    })
-    .then(([og, cln]) => {
-      clonePseudoElements([og, cln]);
-      return [og, cln];
-    })
-    .then(([og, cln]) => {
-      copyUserInput([og, cln]);
-      return [og, cln];
-    })
-    .then(([og, cln]) => {
-      fixSvg(cln);
-      return [og, cln];
-    })
-    .then(([og, cln]) => cln);
+  return (
+    Promise.resolve([original, clone])
+      .then(([og, cln]) => {
+        cloneStyle(og, cln);
+        return [og, cln];
+      })
+      .then(([og, cln]) => {
+        clonePseudoElements([og, cln]);
+        return [og, cln];
+      })
+      .then(([og, cln]) => {
+        copyUserInput([og, cln]);
+        return [og, cln];
+      })
+      .then(([og, cln]) => {
+        fixSvg(cln);
+        return [og, cln];
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .then(([og, cln]) => cln)
+  );
 }
 
-/****
+/** **
  * UTILS
  ****/
 export function asArray(arrayLike) {
@@ -142,7 +143,7 @@ export function uid() {
 
 export function makeImage(uri) {
   return new Promise((resolve, reject) => {
-    const image = new window.Image();
+    const image = new Window.Image();
     image.onload = () => {
       resolve(image);
     };
@@ -162,7 +163,7 @@ export function isDataUrl(url) {
 }
 
 function parseExtension(url) {
-  const match = /\.([^\.\/]*?)$/g.exec(url);
+  const match = /\.([^./]*?)$/g.exec(url);
   if (match) {
     return match[1];
   }
@@ -201,13 +202,13 @@ export function dataAsUrl(content, type) {
 }
 
 export function escape(string) {
-  return string.replace(/([.*+?^${}()|\[\]\/\\])/g, '\\$1');
+  return string.replace(/([.*+?^${}()|[\]/\\])/g, '\\$1');
 }
 
 export function delay(ms) {
   return arg => {
     return new Promise(resolve => {
-      window.setTimeout(() => {
+      Window.setTimeout(() => {
         resolve(arg);
       }, ms);
     });
@@ -221,13 +222,13 @@ export function isSrcAsDataUrl(text) {
 
 function cvToBlob(canvas) {
   return new Promise(resolve => {
-    const binaryString = window.atob(canvas.toDataURL().split(',')[1]);
+    const binaryString = Window.atob(canvas.toDataURL().split(',')[1]);
     const length = binaryString.length;
     const binaryArray = new Uint8Array(length);
 
     for (let i = 0; i < length; i++) binaryArray[i] = binaryString.charCodeAt(i);
 
-    resolve(new window.Blob([binaryArray], {type: 'image/png'}));
+    resolve(new Window.Blob([binaryArray], {type: 'image/png'}));
   });
 }
 
@@ -257,7 +258,7 @@ export function getHeight(node) {
 }
 
 function px(node, styleProperty) {
-  const value = window.getComputedStyle(node).getPropertyValue(styleProperty);
+  const value = Window.getComputedStyle(node).getPropertyValue(styleProperty);
   return parseFloat(value.replace('px', ''));
 }
 
@@ -281,7 +282,7 @@ export function getAndEncode(url, options) {
   }
 
   return new Promise(resolve => {
-    const request = new window.XMLHttpRequest();
+    const request = new Window.XMLHttpRequest();
 
     request.onreadystatechange = done;
     request.ontimeout = timeout;
@@ -311,7 +312,7 @@ export function getAndEncode(url, options) {
         return;
       }
 
-      const encoder = new window.FileReader();
+      const encoder = new Window.FileReader();
       encoder.onloadend = () => {
         const content = encoder.result.split(/,/)[1];
         resolve(content);

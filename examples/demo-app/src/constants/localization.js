@@ -14,9 +14,10 @@ const en = {
   'loadRemoteMap.examples': 'Examples:',
   'loadRemoteMap.cors':
     '* CORS policy must be defined on your custom url domain in order to be accessible. For more info ',
-  'loadRemoteMap.clickHere':
-    '<a rel="noopener noreferrer" target="_blank" href="{corsLink}">click here</a>',
-  'loadRemoteMap.fetch': 'Fetch'
+  'loadRemoteMap.clickHere': 'click here',
+  'loadRemoteMap.fetch': 'Fetch',
+  'tooltip.hideSQLPanel': 'Hide SQL Panel',
+  'tooltip.showSQLPanel': 'Show SQL Panel'
 };
 
 export const messages = {
@@ -32,8 +33,7 @@ export const messages = {
     'loadRemoteMap.examples': 'Esimerkkejä:',
     'loadRemoteMap.cors':
       '* CORS-käytäntö pitää olla määriteltynä urlin domainissa, jotta aineiston voi ladata.',
-    'loadRemoteMap.clickHere':
-      '<a rel="noopener noreferrer" target="_blank" href="{corsLink}">Lisätietoja</a>',
+    'loadRemoteMap.clickHere': 'Lisätietoja',
     'loadRemoteMap.fetch': 'Nouda'
   },
   ca: {
@@ -47,8 +47,7 @@ export const messages = {
     'loadRemoteMap.examples': 'Exemples:',
     'loadRemoteMap.cors':
       '* La política CORS s’ha de definir al teu domini per tal que sigui accessible. Per a més informació ',
-    'loadRemoteMap.clickHere':
-      '<a rel="noopener noreferrer" target="_blank" href="{corsLink}">fes clic aquí</a>',
+    'loadRemoteMap.clickHere': 'fes clic aquí',
     'loadRemoteMap.fetch': 'Cerca'
   },
   es: {
@@ -62,8 +61,7 @@ export const messages = {
     'loadRemoteMap.examples': 'Ejemplos:',
     'loadRemoteMap.cors':
       '* La política CORS debe ser definida en tu dominio para que sea accessible. Para más información ',
-    'loadRemoteMap.clickHere':
-      '<a rel="noopener noreferrer" target="_blank" href="{corsLink}">haz clic aquí</a>',
+    'loadRemoteMap.clickHere': 'haz clic aquí',
     'loadRemoteMap.fetch': 'Busca'
   },
   cn: {
@@ -76,8 +74,7 @@ export const messages = {
       '您可以使用以下格式：CSV | JSON | Kepler.gl 配置 json。 确保 url 包含文件扩展名。',
     'loadRemoteMap.examples': '示例：',
     'loadRemoteMap.cors': '* 必须在您的自定义 url 域上定义 CORS 策略才能访问。欲了解更多信息',
-    'loadRemoteMap.clickHere':
-      '<a rel="noopener noreferrer" target="_blank" href="{corsLink}">点击此处</a>',
+    'loadRemoteMap.clickHere': '点击此处',
     'loadRemoteMap.fetch': '获取'
   }
 };

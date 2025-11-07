@@ -26,6 +26,7 @@ const defaultGetColorValue = points => points.length;
 const defaultGetRadiusValue = cell =>
   cell.filteredPoints ? cell.filteredPoints.length : cell.points.length;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function processGeoJSON(this: CPUAggregator, step, props, aggregation, {viewport}) {
   const {data, getPosition, filterData} = props;
   const geoJSON = getGeoJSON(data, getPosition, filterData);
@@ -34,6 +35,7 @@ function processGeoJSON(this: CPUAggregator, step, props, aggregation, {viewport
   this.setState({geoJSON, clusterBuilder});
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getClusters(this: CPUAggregator, step, props, aggregation, {viewport}) {
   const {geoJSON, clusterBuilder} = this.state;
   const {clusterRadius, zoom, width, height} = props;
@@ -133,7 +135,10 @@ const clusterLayerDimensions: [DimensionType<RGBAColor>, DimensionType<number>] 
     getSubLayerAccessor: getSubLayerRadius,
     getPickingInfo: (dimensionState, cell, layerProps) => {
       const radiusValue = layerProps.getRadiusValue(cell);
-      return {radiusValue};
+      const {scaleFunc} = dimensionState;
+      const scaledRadiusValue = scaleFunc ? scaleFunc(radiusValue) : radiusValue;
+
+      return {radiusValue, scaledRadiusValue};
     }
   }
 ];
@@ -185,7 +190,15 @@ export default class ClusterLayer extends AggregationLayer<
   }
 
   getPickingInfo({info}) {
-    return this.state.cpuAggregator.getPickingInfo({info}, this.props);
+    const obj = this.state.cpuAggregator.getPickingInfo({info}, this.props);
+    if (obj?.object) {
+      // @ts-expect-error
+      const distanceScale = getDistanceScales(this.context.viewport);
+      const metersPerPixel = distanceScale.metersPerPixel[0];
+      obj.object.scaledRadiusValue = obj.object.scaledRadiusValue * metersPerPixel;
+    }
+
+    return obj;
   }
 
   _getSublayerUpdateTriggers() {

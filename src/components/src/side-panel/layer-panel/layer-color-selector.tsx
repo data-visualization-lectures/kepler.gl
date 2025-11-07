@@ -3,7 +3,7 @@
 
 import React, {useCallback} from 'react';
 
-import {ColorRange} from '@kepler.gl/constants';
+import {ColorRange} from '@kepler.gl/types';
 import {Layer} from '@kepler.gl/layers';
 import {NestedPartial, RGBColor, ColorUI} from '@kepler.gl/types';
 
@@ -42,10 +42,10 @@ export function LayerColorSelectorFactory(ColorSelector) {
     property = 'color',
     setColorUI
   }: LayerColorSelectorProps) => {
-    const onSetColorUI = useCallback(newConfig => setColorUI(property, newConfig), [
-      setColorUI,
-      property
-    ]);
+    const onSetColorUI = useCallback(
+      newConfig => setColorUI(property, newConfig),
+      [setColorUI, property]
+    );
 
     return (
       <SidePanelSection>
@@ -73,10 +73,10 @@ export function LayerColorRangeSelectorFactory(ColorSelector) {
     property = 'colorRange',
     setColorUI
   }: LayerColorRangeSelectorProps) => {
-    const onSetColorUI = useCallback(newConfig => setColorUI(property, newConfig), [
-      setColorUI,
-      property
-    ]);
+    const onSetColorUI = useCallback(
+      newConfig => setColorUI(property, newConfig),
+      [setColorUI, property]
+    );
 
     return (
       <SidePanelSection>
@@ -106,10 +106,10 @@ export function ArcLayerColorSelectorFactory(ColorSelector) {
     property = 'color',
     setColorUI
   }: ArcLayerColorSelectorProps) => {
-    const onSetColorUI = useCallback(newConfig => setColorUI(property, newConfig), [
-      setColorUI,
-      property
-    ]);
+    const onSetColorUI = useCallback(
+      newConfig => setColorUI(property, newConfig),
+      [setColorUI, property]
+    );
 
     return (
       <SidePanelSection>

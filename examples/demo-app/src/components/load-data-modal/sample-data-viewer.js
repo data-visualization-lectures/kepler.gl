@@ -37,7 +37,7 @@ const StyledSampleMap = styled.div`
     img {
       max-width: 100%;
     }
-    :hover {
+    &:hover {
       cursor: pointer;
       opacity: 1;
     }
@@ -49,7 +49,7 @@ const StyledSampleMap = styled.div`
     line-height: 24px;
   }
 
-  :hover {
+  &:hover {
     .sample-map__image__caption {
       opacity: 0.8;
       transition: opacity 0.4s ease;
@@ -72,7 +72,7 @@ const StyledError = styled.div`
   margin-bottom: 16px;
 `;
 
-const SampleMap = ({id, sample, onClick, locale}) => (
+const SampleMap = ({id, sample, onClick}) => (
   <StyledSampleMap id={id} className="sample-map-gallery__item">
     <div className="sample-map">
       <div className="sample-map__image" onClick={onClick}>

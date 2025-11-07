@@ -2,24 +2,29 @@
 // Copyright contributors to the kepler.gl project
 
 import React, {useState, useCallback} from 'react';
-import styled from 'styled-components';
+import styled, {IStyledComponent} from 'styled-components';
 import classnames from 'classnames';
-import {Reset, Play, Pause, Save, Rocket, AnchorWindow, FreeWindow} from '../icons';
+import {Reset, Play, Pause, Save, Speed, AnchorWindow, FreeWindow} from '../icons';
 import {ANIMATION_WINDOW} from '@kepler.gl/constants';
+import {Filter, TimeRangeFilter} from '@kepler.gl/types';
 import AnimationSpeedSliderFactory from './animation-speed-slider';
 import WindowActionControlFactory from './window-action-control';
 import AnimationWindowControlFactory, {AnimationItem} from './animation-window-control';
 import ResetControlFactory from './reset-control';
 import PlayControlFactory from './play-control';
 import SpeedControlFactory from './speed-control';
+import {BaseComponentProps} from '../../types';
 
 const DEFAULT_BUTTON_HEIGHT = '20px';
 
-interface StyledAnimationControlsProps {
+export type StyledAnimationControlsProps = BaseComponentProps & {
   width?: number;
-}
+};
 
-const StyledAnimationControls = styled.div<StyledAnimationControlsProps>`
+const StyledAnimationControls: IStyledComponent<
+  'web',
+  StyledAnimationControlsProps
+> = styled.div<StyledAnimationControlsProps>`
   display: flex;
   position: relative;
   width: ${props => props.width}px;
@@ -31,17 +36,19 @@ const StyledAnimationControls = styled.div<StyledAnimationControlsProps>`
 
 const DEFAULT_ICONS = {
   /* eslint-disable react/display-name */
-  reset: _ => <Reset height="18px" />,
-  play: _ => <Play height="18px" />,
-  pause: _ => <Pause height="18px" />,
-  export: _ => <Save height="18px" />,
+  reset: () => <Reset height="16px" />,
+  play: () => <Play height="16px" />,
+  pause: () => <Pause height="16px" />,
+  export: () => <Save height="16px" />,
   /* eslint-enable react/display-name */
-  speed: Rocket,
+  speed: () => <Speed height="16px" />,
   animationFree: FreeWindow,
   animationIncremental: AnchorWindow
 };
 
-function nop() {}
+function nop() {
+  return;
+}
 
 const DEFAULT_ANIMATE_ITEMS = {
   [ANIMATION_WINDOW.free]: {
@@ -55,22 +62,23 @@ const DEFAULT_ANIMATE_ITEMS = {
     tooltip: 'tooltip.animationByIncremental'
   }
 };
-interface PlaybackControlsProps {
+export interface PlaybackControlsProps {
+  filter?: Filter;
   isAnimatable?: boolean;
   isAnimating?: boolean;
   width?: number;
   speed: number;
-  animationWindow?: string;
+  animationWindow?: null | TimeRangeFilter['animationWindow'];
   setFilterAnimationWindow?: (id: string) => void;
-  updateAnimationSpeed?: (val: number) => void;
+  updateAnimationSpeed?: (idx: number, speed: number) => void;
   pauseAnimation?: () => void;
   resetAnimation?: () => void;
   startAnimation: () => void;
-  playbackIcons?: typeof DEFAULT_ICONS;
+  playbackIcons?: Record<string, React.FC<{height: number}>>;
   animationItems?: {[key: string]: AnimationItem};
   buttonStyle?: string;
   buttonHeight?: string;
-  playbackActionItems?: any[];
+  playbackActionItems?: React.FC[];
   className?: string;
 }
 
@@ -100,21 +108,22 @@ function PlaybackControlsFactory(
 
   // eslint-disable-next-line complexity
   const PlaybackControls: React.FC<PlaybackControlsProps> = ({
-    isAnimatable,
+    filter,
+    isAnimatable = true,
     isAnimating,
     width,
     speed,
-    animationWindow,
+    animationWindow = ANIMATION_WINDOW.free,
     setFilterAnimationWindow,
     updateAnimationSpeed,
-    pauseAnimation,
-    resetAnimation,
-    startAnimation,
-    playbackIcons,
-    animationItems,
-    buttonStyle,
-    buttonHeight,
-    playbackActionItems = []
+    pauseAnimation = nop,
+    resetAnimation = nop,
+    startAnimation = nop,
+    playbackIcons = DEFAULT_ICONS,
+    animationItems = DEFAULT_ANIMATE_ITEMS,
+    buttonStyle = 'secondary',
+    buttonHeight = DEFAULT_BUTTON_HEIGHT,
+    playbackActionItems = PLAYBACK_CONTROLS_DEFAULT_ACTION_COMPONENTS
   }) => {
     const [isSpeedControlVisible, toggleSpeedControl] = useState(false);
     const [showAnimationWindowControl, setShowAnimationWindowControl] = useState(false);
@@ -152,6 +161,7 @@ function PlaybackControlsFactory(
             animationItems={animationItems}
             animationWindow={animationWindow}
             buttonHeight={buttonHeight}
+            filter={filter}
             setFilterAnimationWindow={setFilterAnimationWindow}
             updateAnimationSpeed={updateAnimationSpeed}
             isAnimating={isAnimating}
@@ -165,19 +175,6 @@ function PlaybackControlsFactory(
         ))}
       </StyledAnimationControls>
     );
-  };
-
-  PlaybackControls.defaultProps = {
-    playbackIcons: DEFAULT_ICONS,
-    animationItems: DEFAULT_ANIMATE_ITEMS,
-    buttonStyle: 'secondary',
-    buttonHeight: DEFAULT_BUTTON_HEIGHT,
-    playbackActionItems: PLAYBACK_CONTROLS_DEFAULT_ACTION_COMPONENTS,
-    animationWindow: ANIMATION_WINDOW.free,
-    isAnimatable: true,
-    pauseAnimation: nop,
-    resetAnimation: nop,
-    startAnimation: nop
   };
 
   return PlaybackControls;

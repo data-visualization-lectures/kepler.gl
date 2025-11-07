@@ -9,6 +9,7 @@ import LayerListFactory from './layer-list';
 import {Layer, LayerClassesType} from '@kepler.gl/layers';
 import {UIStateActions, ActionHandler, VisStateActions, MapStateActions} from '@kepler.gl/actions';
 import {KeplerTable, Datasets} from '@kepler.gl/table';
+import {getApplicationConfig} from '@kepler.gl/utils';
 
 type DatasetLayerSectionProps = {
   datasets: Datasets;
@@ -21,7 +22,7 @@ type DatasetLayerSectionProps = {
   updateTableColor: ActionHandler<typeof VisStateActions.updateTableColor>;
   removeDataset: ActionHandler<typeof UIStateActions.openDeleteModal>;
   uiStateActions: typeof UIStateActions;
-  visStateActions: typeof VisStateActions;  
+  visStateActions: typeof VisStateActions;
   mapStateActions: typeof MapStateActions;
 };
 
@@ -57,6 +58,22 @@ function DatasetLayerSectionFactory(
       return {[dataset.id]: dataset};
     }, [dataset]);
 
+    // temp patch to hide layers that are in development
+    const enableRasterTileLayer = getApplicationConfig().enableRasterTileLayer;
+    const enableWMSLayer = getApplicationConfig().enableWMSLayer;
+    const filteredLayerClasses = useMemo(() => {
+      let filteredClasses = layerClasses;
+      if (!enableRasterTileLayer) {
+        const {rasterTile: _rasterTile, ...rest} = filteredClasses;
+        filteredClasses = rest as LayerClassesType;
+      }
+      if (!enableWMSLayer) {
+        const {wms: _wms, ...rest} = filteredClasses;
+        filteredClasses = rest as LayerClassesType;
+      }
+      return filteredClasses as LayerClassesType;
+    }, [enableRasterTileLayer, enableWMSLayer, layerClasses]);
+
     return (
       <DatasetLayerSectionWrapper>
         <SourceDataCatalog
@@ -70,7 +87,7 @@ function DatasetLayerSectionFactory(
           datasets={datasets}
           layerOrder={layerOrder}
           layers={layers}
-          layerClasses={layerClasses}
+          layerClasses={filteredLayerClasses}
           uiStateActions={uiStateActions}
           visStateActions={visStateActions}
           mapStateActions={mapStateActions}

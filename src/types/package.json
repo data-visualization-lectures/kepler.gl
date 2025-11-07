@@ -1,7 +1,7 @@
 {
   "name": "@kepler.gl/types",
   "author": "Shan He <shan@uber.com>",
-  "version": "3.0.0",
+  "version": "3.2.1",
   "description": "kepler.gl types used by kepler.gl components, actions and reducers",
   "license": "MIT",
   "types": "index.d.ts",
@@ -18,22 +18,23 @@
     "url": "https://github.com/keplergl/kepler.gl.git"
   },
   "scripts": {
-    "prepublish": " ",
+    "prepublishOnly": " ",
     "stab": " "
   },
   "nyc": {
     "sourceMap": false,
     "instrument": false
   },
-  "engines": {
-    "node": ">=18.18.2"
-  },
   "maintainers": [
     "Shan He <heshan0131@gmail.com>",
     "Giuseppe Macri <gmacri@uber.com>"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "volta": {
     "node": "18.18.2",
-    "yarn": "1.22.17"
-  }
+    "yarn": "4.4.0"
+  },
+  "packageManager": "yarn@4.4.0"
 }

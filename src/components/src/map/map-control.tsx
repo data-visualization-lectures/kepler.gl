@@ -13,19 +13,19 @@ import MapLegendPanelFactory from './map-legend-panel';
 import MapDrawPanelFactory from './map-draw-panel';
 import LocalePanelFactory from './locale-panel';
 import {Layer} from '@kepler.gl/layers';
-import {Editor, MapControls, MapState} from '@kepler.gl/types';
+import {Editor, LayerVisConfig, MapControls, MapState} from '@kepler.gl/types';
 import {Datasets} from '@kepler.gl/table';
 import {MapStateActions, UIStateActions} from '@kepler.gl/actions';
 
 interface StyledMapControlProps {
-  top?: number;
+  $top?: number;
 }
 
 const StyledMapControl = styled.div<StyledMapControlProps>`
   right: 0;
   padding: ${props => props.theme.mapControl.padding}px;
   z-index: 10;
-  margin-top: ${props => props.top || 0}px;
+  margin-top: ${props => props.$top || 0}px;
   position: absolute;
   display: grid;
   row-gap: 8px;
@@ -40,7 +40,6 @@ const StyledMapControl = styled.div<StyledMapControlProps>`
 const LegendLogo = <KeplerGlLogo version={false} appName="kepler.gl" />;
 
 export type MapControlProps = {
-  availableLocales: ReadonlyArray<string>;
   datasets: Datasets;
   dragRotate: boolean;
   isSplit: boolean;
@@ -62,11 +61,16 @@ export type MapControlProps = {
   onToggleMapControl: (control: string) => void;
   onSetEditorMode: (mode: string) => void;
   onToggleEditorVisibility: () => void;
+  onLayerVisConfigChange: (oldLayer: Layer, newVisConfig: Partial<LayerVisConfig>) => void;
   top: number;
   onSetLocale: typeof UIStateActions.setLocale;
+  availableLocales: string[];
   locale: string;
   logoComponent?: React.FC | React.ReactNode;
   isExport?: boolean;
+
+  setMapControlSettings: typeof UIStateActions.setMapControlSettings;
+  activeSidePanel: string | null;
 
   // optional
   mapState?: MapState;
@@ -104,25 +108,32 @@ function MapControlFactory(
     MapLegendPanel
   ];
 
-  const MapControl: React.FC<MapControlProps> = React.memo(
-    ({actionComponents = DEFAULT_ACTIONS, ...props}) => {
-      return (
-        <StyledMapControl className="map-control" top={props.top}>
-          {actionComponents.map((ActionComponent, index) => (
-            <ActionComponent key={index} className="map-control-action" {...props} />
-          ))}
-        </StyledMapControl>
-      );
-    }
-  );
-
-  MapControl.defaultProps = {
-    isSplit: false,
-    top: 0,
-    mapIndex: 0,
-    logoComponent: LegendLogo,
-    actionComponents: DEFAULT_ACTIONS
+  const MapControl: React.FC<MapControlProps> & {
+    defaultActionComponents: MapControlProps['actionComponents'];
+  } = ({
+    actionComponents = DEFAULT_ACTIONS,
+    isSplit = false,
+    top = 0,
+    mapIndex = 0,
+    logoComponent = LegendLogo,
+    ...restProps
+  }) => {
+    const actionComponentProps = {
+      isSplit,
+      mapIndex,
+      logoComponent,
+      ...restProps
+    };
+    return (
+      <StyledMapControl className="map-control" $top={top}>
+        {actionComponents.map((ActionComponent, index) => (
+          <ActionComponent key={index} className="map-control-action" {...actionComponentProps} />
+        ))}
+      </StyledMapControl>
+    );
   };
+
+  MapControl.defaultActionComponents = DEFAULT_ACTIONS;
 
   MapControl.displayName = 'MapControl';
 

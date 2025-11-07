@@ -8,9 +8,10 @@ const join = require('path').join;
 const KeplerPackage = require('../package');
 
 const SRC_DIR = resolve(__dirname, '../src');
+const NODE_MODULES_DIR = resolve(__dirname, '../node_modules');
 const OUTPUT_DIR = resolve(__dirname, '../umd');
 
-const LIBRARY_BUNDLE_CONFIG = env => ({
+const LIBRARY_BUNDLE_CONFIG = () => ({
   entry: {
     KeplerGl: join(SRC_DIR, 'index.js')
   },
@@ -75,7 +76,13 @@ const LIBRARY_BUNDLE_CONFIG = env => ({
       {
         test: /\.(js|ts|tsx)$/,
         loader: 'babel-loader',
-        include: [SRC_DIR],
+        include: [
+          SRC_DIR,
+          `${NODE_MODULES_DIR}/@loaders.gl`,
+          `${NODE_MODULES_DIR}/@deck.gl`,
+          `${NODE_MODULES_DIR}/@math.gl`,
+          `${NODE_MODULES_DIR}/@geoarrow`
+        ],
         options: {
           plugins: [
             [
@@ -92,11 +99,21 @@ const LIBRARY_BUNDLE_CONFIG = env => ({
           ]
         }
       },
+      // Add css loader for ai-assistant
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      },
       // for compiling apache-arrow ESM module
       {
         test: /\.mjs$/,
         include: /node_modules\/apache-arrow/,
         type: 'javascript/auto'
+      },
+      {
+        test: /\.js$/,
+        loader: require.resolve('@open-wc/webpack-import-meta-loader'),
+        include: [/node_modules\/parquet-wasm/]
       }
     ]
   },

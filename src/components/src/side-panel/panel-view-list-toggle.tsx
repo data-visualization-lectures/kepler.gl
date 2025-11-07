@@ -13,7 +13,7 @@ import {PANEL_VIEW_TOGGLES} from '@kepler.gl/constants';
 type ToggleOptionProps = {
   isActive: boolean;
   onClick: () => void;
-  option: typeof TOGGLE_OPTIONS[0];
+  option: (typeof TOGGLE_OPTIONS)[0];
 };
 
 type PanelViewListToggleProps = {
@@ -36,9 +36,9 @@ const PanelViewListToggleWrapper = styled.div.attrs({
 
 export const StyledToggleOption = styled.div.attrs({
   className: 'layer-panel-toggle-option'
-})<{active: boolean}>`
-  color: ${props => (props.active ? props.theme.subtextColorActive : props.theme.panelTabColor)};
-  :hover {
+})<{$active: boolean}>`
+  color: ${props => (props.$active ? props.theme.subtextColorActive : props.theme.panelTabColor)};
+  &:hover {
     cursor: pointer;
     color: ${props => props.theme.subtextColorActive};
   }
@@ -49,7 +49,7 @@ function ToggleOptionFactory() {
     <StyledToggleOption
       data-tip
       data-for={`${option.id}-toggle-option`}
-      active={isActive}
+      $active={isActive}
       onClick={onClick}
     >
       <option.iconComponent height="20px" />

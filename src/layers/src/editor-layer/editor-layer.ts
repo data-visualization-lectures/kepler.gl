@@ -13,7 +13,7 @@ import {PathStyleExtension} from '@deck.gl/extensions';
 
 import {EDITOR_LAYER_ID, EDITOR_MODES, EDITOR_LAYER_PICKING_RADIUS} from '@kepler.gl/constants';
 import {Viewport, Editor, Feature, FeatureSelectionContext} from '@kepler.gl/types';
-import {generateHashId} from '@kepler.gl/utils';
+import {generateHashId} from '@kepler.gl/common-utils';
 
 import {EDIT_TYPES} from './constants';
 import {LINE_STYLE, FEATURE_STYLE, EDIT_HANDLE_STYLE} from './feature-styles';
@@ -89,7 +89,7 @@ export function getEditorLayer({
 
     onEdit: ({updatedData, editType}) => {
       switch (editType) {
-        case EDIT_TYPES.ADD_FEATURE:
+        case EDIT_TYPES.ADD_FEATURE: {
           const {features: _features} = updatedData;
           if (_features.length) {
             const lastFeature = _features[_features.length - 1];
@@ -99,6 +99,7 @@ export function getEditorLayer({
             setSelectedFeature(lastFeature);
           }
           break;
+        }
         case EDIT_TYPES.ADD_POSITION:
         case EDIT_TYPES.MOVE_POSITION:
         case EDIT_TYPES.TRANSLATING:
@@ -133,7 +134,7 @@ export function getEditorLayer({
 
     extensions: [new PathStyleExtension({dash: true})],
     dashGapPickable: true,
-    getDashArray: (feature, _isSelected) => {
+    getDashArray: feature => {
       if (feature?.properties?.guideType === 'tentative') {
         return LINE_STYLE.dashArray;
       }

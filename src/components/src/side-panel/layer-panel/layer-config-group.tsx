@@ -8,6 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import Switch from '../../common/switch';
 import InfoHelperFactory from '../../common/info-helper';
 import {VertThreeDots} from '../../common/icons';
+import {shouldForwardProp} from '../../common/styled-components';
 import {Layer} from '@kepler.gl/layers';
 import {LayerVisConfig} from '@kepler.gl/types';
 
@@ -79,7 +80,7 @@ interface StyledConfigGroupHeaderProps {
   collapsible?: boolean;
 }
 
-export const StyledConfigGroupHeader = styled.div.attrs({
+export const StyledConfigGroupHeader = styled.div.withConfig({shouldForwardProp}).attrs({
   className: 'layer-config-group__header'
 })<StyledConfigGroupHeaderProps>`
   display: flex;
@@ -88,7 +89,7 @@ export const StyledConfigGroupHeader = styled.div.attrs({
   margin-bottom: 12px;
   cursor: default;
 
-  :hover {
+  &:hover {
     ${props => props.collapsible && 'cursor: pointer;'}
     .layer-config-group__label {
       color: ${props => props.theme.textColorHl};
@@ -147,6 +148,9 @@ export function LayerConfigGroupLabelFactory(InfoHelper: ReturnType<typeof InfoH
 
 LayerConfigGroupFactory.deps = [LayerConfigGroupLabelFactory];
 
+function nop() {
+  return;
+}
 function LayerConfigGroupFactory(
   LayerConfigGroupLabel: ReturnType<typeof LayerConfigGroupLabelFactory>
 ) {
@@ -155,11 +159,11 @@ function LayerConfigGroupFactory(
     children,
     property,
     layer,
-    onChange,
-    collapsible,
-    description,
-    disabled,
-    expanded,
+    onChange = nop,
+    collapsible = false,
+    description = '',
+    disabled = false,
+    expanded = false,
     IconComponent = VertThreeDots
   }) => {
     const [collapsed, toggleCollapsed] = useState(!expanded);
@@ -193,13 +197,6 @@ function LayerConfigGroupFactory(
     );
   };
 
-  LayerConfigGroup.defaultProps = {
-    collapsible: false,
-    expanded: false,
-    onChange: () => {},
-    description: '',
-    disabled: false
-  };
   return LayerConfigGroup;
 }
 

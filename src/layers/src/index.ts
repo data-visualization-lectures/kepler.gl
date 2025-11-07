@@ -15,7 +15,12 @@ import {default as GridLayer} from './grid-layer/grid-layer';
 export {pointToPolygonGeo} from './grid-layer/grid-utils';
 import {default as HexagonLayer} from './hexagon-layer/hexagon-layer';
 import {default as GeojsonLayer} from './geojson-layer/geojson-layer';
-export {defaultElevation, defaultLineWidth, defaultRadius} from './geojson-layer/geojson-layer';
+export {
+  defaultElevation,
+  defaultLineWidth,
+  defaultRadius,
+  COLUMN_MODE_TABLE
+} from './geojson-layer/geojson-layer';
 import {default as ClusterLayer} from './cluster-layer/cluster-layer';
 import {default as IconLayer} from './icon-layer/icon-layer';
 import {default as HeatmapLayer} from './heatmap-layer/heatmap-layer';
@@ -25,24 +30,49 @@ export {defaultElevation as h3DefaultElevation} from './h3-hexagon-layer/h3-hexa
 import {default as ScenegraphLayer} from './scenegraph-layer/scenegraph-layer';
 import {default as TripLayer} from './trip-layer/trip-layer';
 export {defaultLineWidth as tripDefaultLineWidth} from './trip-layer/trip-layer';
-export {coordHasLength4, containValidTime, isTripGeoJsonField, parseTripGeoJsonTimestamp, getAnimationDomainFromTimestamps} from './trip-layer/trip-utils';
+export {
+  coordHasLength4,
+  isTripGeoJsonField,
+  parseTripGeoJsonTimestamp,
+  getAnimationDomainFromTimestamps
+} from './trip-layer/trip-utils';
 import {default as S2GeometryLayer} from './s2-geometry-layer/s2-geometry-layer';
 export {defaultElevation as s2DefaultElevation} from './s2-geometry-layer/s2-geometry-layer';
 export {getS2Center} from './s2-geometry-layer/s2-utils';
 export {default as AggregationLayer} from './aggregation-layer';
+import {default as VectorTileLayer} from './vector-tile/vector-tile-layer';
+
+export {default as VectorTileIcon} from './vector-tile/vector-tile-icon';
+export {default as VectorTileLayer} from './vector-tile/vector-tile-layer';
+
+import {default as RasterTileLayer} from './raster-tile/raster-tile-layer';
+export {default as RasterTileIcon} from './raster-tile/raster-tile-icon';
+export {
+  default as RasterTileLayer,
+  getNumRasterTilesBeingLoaded
+} from './raster-tile/raster-tile-layer';
+export {
+  CATEGORICAL_COLORMAP_ID,
+  DATA_SOURCE_COLOR_DEFAULTS,
+  RASTER_COLOR_RESET_PARAMS,
+  PRESET_OPTIONS
+} from './raster-tile/config';
+export {RasterLayerResources} from './raster-tile/url';
+export {getCategoricalColormapDataUrl} from './raster-tile/image';
+export * from './raster-tile/types';
+export * from './raster-tile/raster-tile-utils';
+
+export {default as WMSLayerIcon} from './wms-layer/wms-layer-icon';
+
 import {LAYER_TYPES} from '@kepler.gl/constants';
 export {parseGeoJsonRawFeature} from './geojson-layer/geojson-utils';
 // base layer
 // eslint-disable-next-line prettier/prettier
 export type {
   LayerBaseConfig,
-  LayerColumns,
-  LayerColumn,
   VisualChannelDomain,
   VisualChannel,
-  VisualChannelDescription,
-  ColumnPairs,
-  FindDefaultLayerPropsReturnValue
+  VisualChannelDescription
 } from './base-layer';
 export * from './base-layer';
 
@@ -60,7 +90,10 @@ export const KeplerGlLayers = {
   H3Layer,
   ScenegraphLayer,
   TripLayer,
-  S2GeometryLayer
+  S2GeometryLayer,
+  VectorTileLayer,
+  RasterTileLayer,
+  WMSLayer
 };
 
 export type LayerClassesType = typeof LayerClasses;
@@ -77,7 +110,10 @@ export const LayerClasses = {
   [LAYER_TYPES.hexagonId]: H3Layer,
   [LAYER_TYPES['3D']]: ScenegraphLayer,
   [LAYER_TYPES.trip]: TripLayer,
-  [LAYER_TYPES.s2]: S2GeometryLayer
+  [LAYER_TYPES.s2]: S2GeometryLayer,
+  [LAYER_TYPES['vectorTile']]: VectorTileLayer,
+  [LAYER_TYPES['rasterTile']]: RasterTileLayer,
+  [LAYER_TYPES.wms]: WMSLayer
 };
 
 export * from './mapbox-utils';
@@ -86,14 +122,29 @@ export {default as Table} from './table';
 
 export {getEditorLayer} from './editor-layer/editor-layer';
 
-export {default as ScenegraphLayer, scenegraphVisConfigs} from './scenegraph-layer/scenegraph-layer';
+export {
+  default as ScenegraphLayer,
+  scenegraphVisConfigs
+} from './scenegraph-layer/scenegraph-layer';
 export {default as ScenegraphLayerIcon} from './scenegraph-layer/scenegraph-layer-icon';
 
-import {isDrawingActive, onClick, onHover, getTooltip, getCursor} from './editor-layer/editor-layer-utils';
+import {
+  isDrawingActive,
+  onClick,
+  onHover,
+  getTooltip,
+  getCursor
+} from './editor-layer/editor-layer-utils';
+import WMSLayer from './wms-layer/wms-layer';
 export const EditorLayerUtils = {
-  isDrawingActive, onClick, onHover, getTooltip, getCursor
+  isDrawingActive,
+  onClick,
+  onHover,
+  getTooltip,
+  getCursor
 };
 
 export {getFilterDataFunc} from './aggregation-layer';
 
 export * from './layer-update';
+export * from './layer-utils';

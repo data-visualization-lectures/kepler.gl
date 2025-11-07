@@ -115,6 +115,9 @@ export default {
     radiusRange: '半径の範囲',
     clusterRadius: 'クラスターの範囲[ピクセル]',
     radiusRangePixels: '半径の範囲[ピクセル]',
+    billboard: 'ビルボードモード',
+    billboardDescription: 'ジオメトリをカメラに向けます',
+    fadeTrail: 'フェージングパス',
     opacity: '不透明度',
     coverage: 'カバー率',
     outline: '輪郭線',
@@ -144,9 +147,9 @@ export default {
     weightIntensity: '重みづけの強さ',
     zoomScale: 'ズームのスケール',
     heightRange: '高さの範囲',
+    heightMultiplier: '高さ乗数',
     fixedHeight: '固定高さ',
-    fixedHeightDescription: '高さを変更せずに使用する',
-    heightMultiplier: '高さ乗数'
+    fixedHeightDescription: '高さを変更せずに使用する'
   },
   layerManager: {
     addData: 'データ追加',
@@ -189,6 +192,8 @@ export default {
     disable3DMap: '3D地図を無効化',
     DrawOnMap: '地図上に図形を描画',
     selectLocale: '言語設定',
+    showAiAssistantPanel: 'AI 助手パネルを表示',
+    hideAiAssistantPanel: 'AI 助手パネルを非表示',
     hideLayerPanel: 'レイヤパネルを非表示',
     showLayerPanel: 'レイヤパネルを表示',
     moveToTop: 'データレイヤの手前に移動',

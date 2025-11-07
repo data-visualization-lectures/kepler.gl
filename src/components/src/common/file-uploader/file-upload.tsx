@@ -12,22 +12,15 @@ import {FileLoading, FileLoadingProgress} from '@kepler.gl/types';
 
 import {isChrome} from '@kepler.gl/utils';
 import {GUIDES_FILE_FORMAT_DOC} from '@kepler.gl/constants';
-import ReactMarkdown from 'react-markdown';
+import Markdown from 'markdown-to-jsx';
 // Breakpoints
 import {FormattedMessage} from '@kepler.gl/localization';
 import {media} from '@kepler.gl/styles';
 
-/** @typedef {import('./file-upload').FileUploadProps} FileUploadProps */
+import LinkRenderer from '../link-renderer';
 
 const fileIconColor = '#D3D8E0';
 
-const LinkRenderer = props => {
-  return (
-    <a href={props.href} target="_blank" rel="noopener noreferrer">
-      {props.children}
-    </a>
-  );
-};
 const StyledUploadMessage = styled.div`
   color: ${props => props.theme.textColorLT};
   font-size: 14px;
@@ -81,6 +74,9 @@ const MsgWrapper = styled.div`
 const StyledDragNDropIcon = styled.div`
   color: ${fileIconColor};
   margin-bottom: 48px;
+
+  display: flex;
+  justify-content: center;
 
   ${media.portable`
     margin-bottom: 16px;
@@ -214,6 +210,14 @@ function FileUploadFactory() {
       const {dragOver, files, errorFiles} = this.state;
       const {fileLoading, fileLoadingProgress, theme, intl} = this.props;
       const {fileExtensions = [], fileFormatNames = []} = this.props;
+      const fileUploadInfoText = `${intl.formatMessage(
+        {
+          id: 'fileUploader.configUploadMessage'
+        },
+        {
+          fileFormatNames: fileFormatNames.map(format => `**${format}**`).join(', ')
+        }
+      )}(${GUIDES_FILE_FORMAT_DOC}).`;
       return (
         <StyledFileUpload className="file-uploader" ref={this.frame}>
           {FileDrop ? (
@@ -225,17 +229,17 @@ function FileUploadFactory() {
               className="file-uploader__file-drop"
             >
               <StyledUploadMessage className="file-upload__message">
-                <ReactMarkdown
-                  source={`${intl.formatMessage(
-                    {
-                      id: 'fileUploader.configUploadMessage'
-                    },
-                    {
-                      fileFormatNames: fileFormatNames.map(format => `**${format}**`).join(', ')
+                <Markdown
+                  options={{
+                    overrides: {
+                      a: {
+                        component: LinkRenderer
+                      }
                     }
-                  )}(${GUIDES_FILE_FORMAT_DOC}).`}
-                  renderers={{link: LinkRenderer}}
-                />
+                  }}
+                >
+                  {fileUploadInfoText}
+                </Markdown>
               </StyledUploadMessage>
               <StyledFileDrop dragOver={dragOver}>
                 <StyledFileTypeFow className="file-type-row">

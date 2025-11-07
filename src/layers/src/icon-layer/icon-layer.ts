@@ -1,26 +1,28 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import window from 'global/window';
+import Window from 'global/window';
 import {BrushingExtension} from '@deck.gl/extensions';
 import GL from '@luma.gl/constants';
 
 import {SvgIconLayer} from '@kepler.gl/deckgl-layers';
 import IconLayerIcon from './icon-layer-icon';
-import {ICON_FIELDS, KEPLER_UNFOLDED_BUCKET, ColorRange} from '@kepler.gl/constants';
+import {ICON_FIELDS} from '@kepler.gl/constants';
 import IconInfoModalFactory from './icon-info-modal';
-import Layer, {LayerBaseConfig, LayerBaseConfigPartial, LayerColumn} from '../base-layer';
-import {assignPointPairToLayerColumn} from '../layer-utils';
+import Layer, {LayerBaseConfig, LayerBaseConfigPartial} from '../base-layer';
+import {assignPointPairToLayerColumn, FindDefaultLayerPropsReturnValue} from '../layer-utils';
 import {isTest} from '@kepler.gl/utils';
 import {getTextOffsetByRadius, formatTextLabelData} from '../layer-text-label';
 import {default as KeplerTable} from '@kepler.gl/table';
-import {DataContainerInterface} from '@kepler.gl/utils';
+import {getApplicationConfig, DataContainerInterface} from '@kepler.gl/utils';
 import {
+  ColorRange,
   VisConfigBoolean,
   VisConfigColorRange,
   VisConfigNumber,
   VisConfigRange,
-  Merge
+  Merge,
+  LayerColumn
 } from '@kepler.gl/types';
 
 export type IconLayerColumnsConfig = {
@@ -30,7 +32,7 @@ export type IconLayerColumnsConfig = {
   icon: LayerColumn;
 };
 
-type IconGeometry = {} | null;
+type IconGeometry = object | null;
 
 export type IconLayerVisConfigSettings = {
   radius: VisConfigNumber;
@@ -46,6 +48,7 @@ export type IconLayerVisConfig = {
   opacity: number;
   colorRange: ColorRange;
   radiusRange: [number, number];
+  billboard: boolean;
 };
 
 export type IconLayerConfig = Merge<
@@ -57,18 +60,21 @@ export type IconLayerData = {index: number; icon: string};
 
 const brushingExtension = new BrushingExtension();
 
-export const SVG_ICON_URL = `${KEPLER_UNFOLDED_BUCKET}/icons/svg-icons.json`;
+export const iconPosAccessor =
+  ({lat, lng, altitude}: IconLayerColumnsConfig) =>
+  (dc: DataContainerInterface) =>
+  d =>
+    [
+      dc.valueAt(d.index, lng.fieldIdx),
+      dc.valueAt(d.index, lat.fieldIdx),
+      altitude?.fieldIdx > -1 ? dc.valueAt(d.index, altitude.fieldIdx) : 0
+    ];
 
-export const iconPosAccessor = ({lat, lng, altitude}: IconLayerColumnsConfig) => (
-  dc: DataContainerInterface
-) => d => [
-  dc.valueAt(d.index, lng.fieldIdx),
-  dc.valueAt(d.index, lat.fieldIdx),
-  altitude?.fieldIdx > -1 ? dc.valueAt(d.index, altitude.fieldIdx) : 0
-];
-
-export const iconAccessor = ({icon}: IconLayerColumnsConfig) => (dc: DataContainerInterface) => d =>
-  dc.valueAt(d.index, icon.fieldIdx);
+export const iconAccessor =
+  ({icon}: IconLayerColumnsConfig) =>
+  (dc: DataContainerInterface) =>
+  d =>
+    dc.valueAt(d.index, icon.fieldIdx);
 
 export const iconRequiredColumns: ['lat', 'lng', 'icon'] = ['lat', 'lng', 'icon'];
 export const iconOptionalColumns: ['altitude'] = ['altitude'];
@@ -79,12 +85,14 @@ export const pointVisConfigs: {
   opacity: 'opacity';
   colorRange: 'colorRange';
   radiusRange: 'radiusRange';
+  billboard: 'billboard';
 } = {
   radius: 'radius',
   fixedRadius: 'fixedRadius',
   opacity: 'opacity',
   colorRange: 'colorRange',
-  radiusRange: 'radiusRange'
+  radiusRange: 'radiusRange',
+  billboard: 'billboard'
 };
 
 function flatterIconPositions(icon) {
@@ -137,7 +145,7 @@ export default class IconLayer extends Layer {
   }
 
   get svgIconUrl() {
-    return SVG_ICON_URL;
+    return `${getApplicationConfig().cdnUrl}/icons/svg-icons.json`;
   }
 
   get type(): 'icon' {
@@ -188,6 +196,10 @@ export default class IconLayer extends Layer {
     };
   }
 
+  getZoomFactor({zoom, zoomOffset = 0}: {zoom: number; zoomOffset?: number}) {
+    return Math.pow(2, 14 - zoom + zoomOffset);
+  }
+
   getSvgIcons() {
     const fetchConfig = {
       method: 'GET',
@@ -195,13 +207,25 @@ export default class IconLayer extends Layer {
       cache: 'no-cache'
     };
 
-    if (window.fetch && this.svgIconUrl) {
-      window
-        .fetch(this.svgIconUrl, fetchConfig)
-        .then(response => response.json())
+    if (Window.fetch && this.svgIconUrl) {
+      Window.fetch(this.svgIconUrl, fetchConfig)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to load svg-icons.json: ${response.status}`);
+          }
+          return response.json();
+        })
         .then((parsed: {svgIcons?: any[]} = {}) => {
           this.setSvgIcons(parsed.svgIcons);
+        })
+        .catch(err => {
+          console.error('Error fetching or parsing svg-icons.json:', err);
+          // Fallback to empty geometry to allow default icon rendering
+          this.iconGeometry = {};
         });
+    } else {
+      // No fetch available; set empty geometry so layer can render default icons
+      this.iconGeometry = {};
     }
   }
 
@@ -217,8 +241,11 @@ export default class IconLayer extends Layer {
     this._layerInfoModal = IconInfoModalFactory(svgIcons);
   }
 
-  static findDefaultLayerProps({fieldPairs = [], fields = []}: KeplerTable) {
-    const notFound = {props: []};
+  static findDefaultLayerProps({
+    fieldPairs = [],
+    fields = []
+  }: KeplerTable): FindDefaultLayerPropsReturnValue {
+    const notFound: FindDefaultLayerPropsReturnValue = {props: []};
     if (!fieldPairs.length || !fields.length) {
       return notFound;
     }
@@ -252,6 +279,18 @@ export default class IconLayer extends Layer {
     }));
 
     return {props};
+  }
+
+  getFilteredItemCount() {
+    // use total
+    if (Object.keys(this.filteredItemCount).length) {
+      return Object.values(this.filteredItemCount).reduce(
+        (total, curr) => (Number.isFinite(curr) ? total + curr : total),
+        0
+      );
+    }
+
+    return null;
   }
 
   calculateDataAttribute({dataContainer, filteredIndex}: KeplerTable, getPosition) {
@@ -308,7 +347,8 @@ export default class IconLayer extends Layer {
     };
   }
 
-  updateLayerMeta(dataContainer, getPosition) {
+  updateLayerMeta(dataset: KeplerTable, getPosition) {
+    const {dataContainer} = dataset;
     const bounds = this.getPointsBounds(dataContainer, getPosition);
     this.updateMeta({bounds});
   }
@@ -320,6 +360,7 @@ export default class IconLayer extends Layer {
 
     const layerProps = {
       radiusScale,
+      billboard: this.config.visConfig.billboard,
       ...(this.config.visConfig.fixedRadius ? {} : {radiusMaxPixels: 500})
     };
 
@@ -361,42 +402,40 @@ export default class IconLayer extends Layer {
       cullFace: GL.FRONT
     };
 
-    return !this.iconGeometry
-      ? []
-      : [
-          new SvgIconLayer({
-            ...defaultLayerProps,
-            ...brushingProps,
-            ...layerProps,
-            ...data,
-            parameters,
-            getIconGeometry: id => this.iconGeometry?.[id],
+    return [
+      new SvgIconLayer({
+        ...defaultLayerProps,
+        ...brushingProps,
+        ...layerProps,
+        ...data,
+        parameters,
+        getIconGeometry: id => this.iconGeometry?.[id],
 
-            // update triggers
-            updateTriggers,
-            extensions
-          }),
+        // update triggers
+        updateTriggers,
+        extensions
+      }),
 
-          // hover layer
-          ...(hoveredObject
-            ? [
-                // @ts-expect-error SvgIconLayerProps needs getIcon Field
-                new SvgIconLayer({
-                  ...this.getDefaultHoverLayerProps(),
-                  ...layerProps,
-                  visible: defaultLayerProps.visible,
-                  data: [hoveredObject],
-                  parameters,
-                  getPosition: data.getPosition,
-                  getRadius: data.getRadius,
-                  getFillColor: this.config.highlightColor,
-                  getIconGeometry: id => this.iconGeometry?.[id]
-                })
-              ]
-            : []),
+      // hover layer
+      ...(hoveredObject
+        ? [
+            // @ts-expect-error SvgIconLayerProps needs getIcon Field
+            new SvgIconLayer({
+              ...this.getDefaultHoverLayerProps(),
+              ...layerProps,
+              visible: defaultLayerProps.visible,
+              data: [hoveredObject],
+              parameters,
+              getPosition: data.getPosition,
+              getRadius: data.getRadius,
+              getFillColor: this.config.highlightColor,
+              getIconGeometry: id => this.iconGeometry?.[id]
+            })
+          ]
+        : []),
 
-          // text label layer
-          ...labelLayers
-        ];
+      // text label layer
+      ...labelLayers
+    ];
   }
 }

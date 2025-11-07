@@ -15,6 +15,13 @@ export type RegisterEntryUpdaterAction = {
     initialUiState?: Partial<UiState>;
   };
 };
+
+export type RenameEntryUpdaterAction = {
+  payload: {
+    oldId: string;
+    newId: string;
+  };
+};
 /**
  *
  * Add a new kepler.gl instance in `keplerGlReducer`. This action is called under-the-hood when a `KeplerGl` component is **mounted** to the dom.
@@ -31,9 +38,7 @@ export type RegisterEntryUpdaterAction = {
  * @param payload.initialUiState - initial ui state
  * @public
  */
-export const registerEntry: (
-  entry: RegisterEntryUpdaterAction['payload']
-) => {
+export const registerEntry: (entry: RegisterEntryUpdaterAction['payload']) => {
   type: typeof ActionTypes.REGISTER_ENTRY;
   payload: RegisterEntryUpdaterAction['payload'];
 } = createAction(ActionTypes.REGISTER_ENTRY, (payload: RegisterEntryUpdaterAction['payload']) => ({
@@ -49,12 +54,10 @@ export const registerEntry: (
  * @param {string} id - the id of the instance to be deleted
  * @public
  */
-export const deleteEntry: (
-  id: string
-) => {
+export const deleteEntry: (id: string) => {
   type: typeof ActionTypes.DELETE_ENTRY;
-  payload: string;
-} = createAction(ActionTypes.DELETE_ENTRY, (id: string) => ({payload: id}));
+  payload: {id: string};
+} = createAction(ActionTypes.DELETE_ENTRY, (id: string) => ({payload: {id: id}}));
 
 /**
  *
@@ -70,10 +73,7 @@ export const renameEntry: (
   newId: string
 ) => {
   type: typeof ActionTypes.RENAME_ENTRY;
-  payload: {
-    oldId: string;
-    newId: string;
-  };
+  payload: RenameEntryUpdaterAction['payload'];
 } = createAction(ActionTypes.RENAME_ENTRY, (oldId: string, newId: string) => ({
   payload: {
     oldId,
@@ -93,7 +93,7 @@ export const renameEntry: (
  *
  * @public
  */
-/* eslint-disable no-unused-vars */
+/* eslint-disable  @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const rootActions = null;
-/* eslint-enable no-unused-vars */
+/* eslint-enable  @typescript-eslint/no-unused-vars */

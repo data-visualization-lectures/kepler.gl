@@ -5,7 +5,6 @@ import Layer, {
   LayerBaseConfig,
   LayerBaseConfigPartial,
   LayerColorConfig,
-  LayerColumn,
   LayerCoverageConfig,
   LayerSizeConfig
 } from '../base-layer';
@@ -18,29 +17,29 @@ import {
   idToPolygonGeo,
   h3IsValid,
   getHexFields,
-  Centroid,
-  findDefaultColorField,
-  DataContainerInterface,
-  createDataContainer
-} from '@kepler.gl/utils';
+  Centroid
+} from '@kepler.gl/common-utils';
+import {findDefaultColorField, DataContainerInterface, createDataContainer} from '@kepler.gl/utils';
 import H3HexagonLayerIcon from './h3-hexagon-layer-icon';
 import {
+  ALL_FIELD_TYPES,
   CHANNEL_SCALES,
   HIGHLIGH_COLOR_3D,
   DEFAULT_COLOR_UI,
   DEFAULT_TEXT_LABEL,
-  LAYER_VIS_CONFIGS,
-  ColorRange
+  LAYER_VIS_CONFIGS
 } from '@kepler.gl/constants';
 
 import {
+  ColorRange,
   VisConfigBoolean,
   VisConfigColorRange,
   VisConfigNumber,
   VisConfigRange,
-  Merge
+  Merge,
+  LayerColumn
 } from '@kepler.gl/types';
-import {KeplerTable} from '@kepler.gl/table';
+import {Datasets, KeplerTable} from '@kepler.gl/table';
 
 import {getTextOffsetByRadius, formatTextLabelData} from '../layer-text-label';
 
@@ -92,9 +91,27 @@ export type HexagonIdLayerData = {index: number; id; centroid: Centroid};
 const DEFAULT_LINE_SCALE_VALUE = 8;
 
 export const hexIdRequiredColumns: ['hex_id'] = ['hex_id'];
-export const hexIdAccessor = ({hex_id}: HexagonIdLayerColumnsConfig) => (
-  dc: DataContainerInterface
-) => d => dc.valueAt(d.index, hex_id.fieldIdx);
+export const hexIdAccessor =
+  ({hex_id}: HexagonIdLayerColumnsConfig) =>
+  (dc: DataContainerInterface) =>
+  d =>
+    dc.valueAt(d.index, hex_id.fieldIdx);
+
+/** Accessor that tries to convert h3 indicies in decimal form to hex form */
+export const hexIdExAccessor =
+  ({hex_id}: HexagonIdLayerColumnsConfig) =>
+  (dc: DataContainerInterface) =>
+  d => {
+    const value = dc.valueAt(d.index, hex_id.fieldIdx);
+    if (h3IsValid(value)) {
+      return value;
+    }
+    try {
+      return BigInt(value).toString(16);
+    } catch {
+      return null;
+    }
+  };
 
 export const defaultElevation = 500;
 export const defaultCoverage = 1;
@@ -114,6 +131,7 @@ export const HexagonIdVisConfigs: {
   coverageRange: 'coverageRange';
   elevationScale: 'elevationScale';
   enableElevationZoomFactor: 'enableElevationZoomFactor';
+  fixedHeight: 'fixedHeight';
 } = {
   colorRange: 'colorRange',
   filled: {
@@ -141,7 +159,8 @@ export const HexagonIdVisConfigs: {
   sizeRange: 'elevationRange',
   coverageRange: 'coverageRange',
   elevationScale: 'elevationScale',
-  enableElevationZoomFactor: 'enableElevationZoomFactor'
+  enableElevationZoomFactor: 'enableElevationZoomFactor',
+  fixedHeight: 'fixedHeight'
 };
 
 const brushingExtension = new BrushingExtension();
@@ -154,8 +173,12 @@ export default class HexagonIdLayer extends Layer {
     super(props);
     this.dataToFeature = {centroids: []};
     this.registerVisConfig(HexagonIdVisConfigs);
-    this.getPositionAccessor = (dataContainer: DataContainerInterface) =>
-      hexIdAccessor(this.config.columns)(dataContainer);
+    this.getPositionAccessor = (dataContainer: DataContainerInterface, dataset?: KeplerTable) => {
+      const fieldType = dataset?.fields[this.config.columns.hex_id.fieldIdx].type;
+      return fieldType === ALL_FIELD_TYPES.h3
+        ? hexIdAccessor(this.config.columns)(dataContainer)
+        : hexIdExAccessor(this.config.columns)(dataContainer);
+    };
   }
 
   get type(): 'hexagonId' {
@@ -285,7 +308,7 @@ export default class HexagonIdLayer extends Layer {
     };
   }
 
-  calculateDataAttribute({dataContainer, filteredIndex}: KeplerTable, getHexId) {
+  calculateDataAttribute({filteredIndex}: KeplerTable, getHexId) {
     const data: HexagonIdLayerData[] = [];
 
     for (let i = 0; i < filteredIndex.length; i++) {
@@ -306,12 +329,14 @@ export default class HexagonIdLayer extends Layer {
 
   // TODO: fix complexity
   /* eslint-disable complexity */
-  formatLayerData(datasets, oldLayerData, opt = {}) {
+  formatLayerData(datasets: Datasets, oldLayerData) {
     if (this.config.dataId === null) {
       return {};
     }
-    const {gpuFilter, dataContainer} = datasets[this.config.dataId];
-    const getHexId = this.getPositionAccessor(dataContainer);
+
+    const dataset = datasets[this.config.dataId];
+    const {gpuFilter, dataContainer} = dataset;
+    const getHexId = this.getPositionAccessor(dataContainer, dataset);
     const {data, triggerChanged} = this.updateData(datasets, oldLayerData);
     const accessors = this.getAttributeAccessors({dataContainer});
     const {textLabel} = this.config;
@@ -336,7 +361,9 @@ export default class HexagonIdLayer extends Layer {
   }
   /* eslint-enable complexity */
 
-  updateLayerMeta(dataContainer, getHexId) {
+  updateLayerMeta(dataset: KeplerTable, getHexId) {
+    const {dataContainer} = dataset;
+
     const centroids = dataContainer.map((d, index) => {
       const id = getHexId({index});
       if (!h3IsValid(id)) {

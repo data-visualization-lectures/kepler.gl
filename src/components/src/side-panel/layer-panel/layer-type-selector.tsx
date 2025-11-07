@@ -55,10 +55,10 @@ function LayerTypeSelectorFactory(
     onSelect,
     disabled
   }) => {
-    const selectedItems = useMemo(() => options.find(op => op.id === selected), [
-      options,
-      selected
-    ]);
+    const selectedItems = useMemo(
+      () => options.find(op => op.id === selected),
+      [options, selected]
+    );
 
     return (
       <SidePanelSection>
@@ -81,7 +81,7 @@ function LayerTypeSelectorFactory(
     );
   };
 
-  return withTheme(LayerTypeSelector);
+  return withTheme(LayerTypeSelector) as React.FC<Omit<LayerTypeSelectorProps, 'theme'>>;
 }
 
 export default LayerTypeSelectorFactory;

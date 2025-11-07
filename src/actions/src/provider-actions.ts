@@ -3,11 +3,17 @@
 
 import {createAction} from '@reduxjs/toolkit';
 import {ACTION_PREFIX} from './action-types';
-import {ExportFileOptions, ExportFileToCloudPayload, OnErrorCallBack, OnSuccessCallBack} from '@kepler.gl/types';
+import {
+  ExportFileOptions,
+  ExportFileToCloudPayload,
+  OnErrorCallBack,
+  OnSuccessCallBack
+} from '@kepler.gl/types';
 import {Provider} from '@kepler.gl/cloud-providers';
 
 // eslint-disable-next-line prettier/prettier
-const assignType = <T>(obj: T): { [K in keyof T]: `${typeof ACTION_PREFIX}${string & K}`; } => obj as any
+const assignType = <T>(obj: T): {[K in keyof T]: `${typeof ACTION_PREFIX}${string & K}`} =>
+  obj as any;
 export const ActionTypes = assignType({
   EXPORT_FILE_TO_CLOUD: `${ACTION_PREFIX}EXPORT_FILE_TO_CLOUD`,
   EXPORT_FILE_SUCCESS: `${ACTION_PREFIX}EXPORT_FILE_SUCCESS`,
@@ -16,7 +22,8 @@ export const ActionTypes = assignType({
   POST_SAVE_LOAD_SUCCESS: `${ACTION_PREFIX}POST_SAVE_LOAD_SUCCESS`,
   LOAD_CLOUD_MAP: `${ACTION_PREFIX}LOAD_CLOUD_MAP`,
   LOAD_CLOUD_MAP_SUCCESS: `${ACTION_PREFIX}LOAD_CLOUD_MAP_SUCCESS`,
-  LOAD_CLOUD_MAP_ERROR: `${ACTION_PREFIX}LOAD_CLOUD_MAP_ERROR`,
+  LOAD_CLOUD_MAP_SUCCESS_2: `${ACTION_PREFIX}LOAD_CLOUD_MAP_SUCCESS_2`,
+  LOAD_CLOUD_MAP_ERROR: `${ACTION_PREFIX}LOAD_CLOUD_MAP_ERROR`
 });
 
 /**
@@ -28,12 +35,12 @@ export const ActionTypes = assignType({
  * @param onError
  * @param closeModal
  */
-export const exportFileToCloud: (
-  p: ExportFileToCloudPayload
-) => {
+export const exportFileToCloud: (p: ExportFileToCloudPayload) => {
   type: typeof ActionTypes.EXPORT_FILE_TO_CLOUD;
   payload: ExportFileToCloudPayload;
-} = createAction(ActionTypes.EXPORT_FILE_TO_CLOUD, (payload: ExportFileToCloudPayload) => ({payload}));
+} = createAction(ActionTypes.EXPORT_FILE_TO_CLOUD, (payload: ExportFileToCloudPayload) => ({
+  payload
+}));
 
 /** EXPORT_FILE_SUCCESS */
 export type ExportFileSuccessPayload = {
@@ -44,12 +51,12 @@ export type ExportFileSuccessPayload = {
   closeModal?: boolean;
 };
 
-export const exportFileSuccess: (
-  p: ExportFileSuccessPayload
-) => {
+export const exportFileSuccess: (p: ExportFileSuccessPayload) => {
   type: typeof ActionTypes.EXPORT_FILE_SUCCESS;
   payload: ExportFileSuccessPayload;
-} = createAction(ActionTypes.EXPORT_FILE_SUCCESS, (payload: ExportFileSuccessPayload) => ({payload}));
+} = createAction(ActionTypes.EXPORT_FILE_SUCCESS, (payload: ExportFileSuccessPayload) => ({
+  payload
+}));
 
 /** EXPORT_FILE_ERROR */
 export type ExportFileErrorPayload = {
@@ -59,24 +66,19 @@ export type ExportFileErrorPayload = {
   onError?: OnErrorCallBack;
 };
 
-export const exportFileError: (
-  p: ExportFileErrorPayload
-) => {
+export const exportFileError: (p: ExportFileErrorPayload) => {
   type: typeof ActionTypes.EXPORT_FILE_ERROR;
   payload: ExportFileErrorPayload;
 } = createAction(ActionTypes.EXPORT_FILE_ERROR, (payload: ExportFileErrorPayload) => ({payload}));
 
 /** POST_SAVE_LOAD_SUCCESS */
 export type PostSaveLoadSuccessPayload = string;
-export const postSaveLoadSuccess: (
-  p: PostSaveLoadSuccessPayload
-) => {
+export const postSaveLoadSuccess: (p: PostSaveLoadSuccessPayload) => {
   type: typeof ActionTypes.POST_SAVE_LOAD_SUCCESS;
   payload: PostSaveLoadSuccessPayload;
-} = createAction(
-  ActionTypes.POST_SAVE_LOAD_SUCCESS,
-  (message: PostSaveLoadSuccessPayload) => ({payload : message})
-);
+} = createAction(ActionTypes.POST_SAVE_LOAD_SUCCESS, (message: PostSaveLoadSuccessPayload) => ({
+  payload: message
+}));
 
 export const resetProviderStatus: () => {
   type: typeof ActionTypes.RESET_PROVIDER_STATUS;
@@ -89,9 +91,7 @@ export type LoadCloudMapPayload = {
   onSuccess?: any;
   onError?: OnErrorCallBack;
 };
-export const loadCloudMap: (
-  p: LoadCloudMapPayload
-) => {
+export const loadCloudMap: (p: LoadCloudMapPayload) => {
   type: typeof ActionTypes.LOAD_CLOUD_MAP;
   payload: LoadCloudMapPayload;
 } = createAction(ActionTypes.LOAD_CLOUD_MAP, payload => ({payload}));
@@ -105,15 +105,23 @@ export type LoadCloudMapSuccessPayload = {
   onSuccess?: LoadCloudMapSuccessCallback;
   onError?: OnErrorCallBack;
 };
-export const loadCloudMapSuccess: (
-  p: LoadCloudMapSuccessPayload
-) => {
+export const loadCloudMapSuccess: (p: LoadCloudMapSuccessPayload) => {
   type: typeof ActionTypes.LOAD_CLOUD_MAP_SUCCESS;
   payload: LoadCloudMapSuccessPayload;
-} = createAction(
-  ActionTypes.LOAD_CLOUD_MAP_SUCCESS,
-  (payload: LoadCloudMapSuccessPayload) => ({payload})
-);
+} = createAction(ActionTypes.LOAD_CLOUD_MAP_SUCCESS, (payload: LoadCloudMapSuccessPayload) => ({
+  payload
+}));
+
+/** LOAD_CLOUD_MAP_SUCCESS_2 */
+export type LoadCloudMapSuccess2Payload = LoadCloudMapSuccessPayload & {
+  datasetsPayload: any;
+};
+export const loadCloudMapSuccess2: (p: LoadCloudMapSuccess2Payload) => {
+  type: typeof ActionTypes.LOAD_CLOUD_MAP_SUCCESS_2;
+  payload: LoadCloudMapSuccess2Payload;
+} = createAction(ActionTypes.LOAD_CLOUD_MAP_SUCCESS_2, (payload: LoadCloudMapSuccess2Payload) => ({
+  payload
+}));
 
 /** LOAD_CLOUD_MAP_ERROR */
 export type LoadCloudMapErrorPayload = {
@@ -121,9 +129,9 @@ export type LoadCloudMapErrorPayload = {
   provider: Provider;
   onError?: OnErrorCallBack;
 };
-export const loadCloudMapError: (
-  p: LoadCloudMapErrorPayload
-) => {
+export const loadCloudMapError: (p: LoadCloudMapErrorPayload) => {
   type: typeof ActionTypes.LOAD_CLOUD_MAP_ERROR;
   payload: LoadCloudMapErrorPayload;
-} = createAction(ActionTypes.LOAD_CLOUD_MAP_ERROR, (payload: LoadCloudMapErrorPayload) => ({payload}));
+} = createAction(ActionTypes.LOAD_CLOUD_MAP_ERROR, (payload: LoadCloudMapErrorPayload) => ({
+  payload
+}));

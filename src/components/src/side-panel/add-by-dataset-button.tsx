@@ -4,7 +4,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import styled from 'styled-components';
 import {FormattedMessage} from '@kepler.gl/localization';
-import {Datasets} from '@kepler.gl/table';
+import {Datasets, KeplerTable} from '@kepler.gl/table';
 
 import Tippy from '@tippyjs/react';
 import {Add} from '../common/icons';
@@ -73,7 +73,6 @@ const TYPEAHEAD_INPUT_CLASS = 'typeahead__input';
 export type AddByDatasetButtonProps = {
   datasets: Datasets;
   onAdd: (dataId: string) => void;
-  width: string;
   buttonIntlId: string;
   inactive?: boolean;
   className?: string;
@@ -92,14 +91,13 @@ const AddByDatasetButton: React.FC<AddByDatasetButtonProps> = ({
   datasets,
   onAdd,
   buttonIntlId,
-  width,
   className,
   inactive
 }) => {
   const [tippyInstance, setTippyInstance] = useState();
 
   const options = useMemo(() => {
-    return Object.values(datasets).map(ds => ({
+    return Object.values(datasets).map((ds: KeplerTable) => ({
       label: ds.label,
       value: ds.id,
       color: ds.color
@@ -116,6 +114,9 @@ const AddByDatasetButton: React.FC<AddByDatasetButtonProps> = ({
 
   const onOptionSelected = useCallback(
     option => {
+      if (!option) {
+        return;
+      }
       onAdd(option.value);
       if (tippyInstance) {
         // @ts-ignore
@@ -131,7 +132,6 @@ const AddByDatasetButton: React.FC<AddByDatasetButtonProps> = ({
     <Button
       tabIndex={-1}
       className={className || 'add-by-dataset-button'}
-      width={width}
       onClick={onClickBtn}
       disabled={!options.length || inactive}
     >

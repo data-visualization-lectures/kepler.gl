@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import {generateHashId, validateEffectParameters} from '@kepler.gl/utils';
+import {validateEffectParameters} from '@kepler.gl/utils';
+import {generateHashId} from '@kepler.gl/common-utils';
 import {
   Effect as EffectInterface,
   EffectProps,
@@ -47,6 +48,11 @@ export class Effect implements EffectInterface {
 
   _initializeEffect() {
     // implemented in subclasses
+  }
+
+  clone(): Effect {
+    const props = this.getDefaultProps(this);
+    return new (this.constructor as new (props: EffectPropsPartial) => this)(props);
   }
 
   getDefaultProps(props: EffectPropsPartial = {}): EffectProps {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import {Field} from '@kepler.gl/types';
+import {ProtoDatasetField} from '@kepler.gl/types';
 import {DataRow, SharedRowOptions} from './data-row';
 
 /**
@@ -82,7 +82,13 @@ export interface DataContainerInterface {
    * @param columnIndex Column index.
    * @returns The field object at the specified index.
    */
-  getField?(columnIndex: number): Field;
+  getField?(columnIndex: number): ProtoDatasetField;
+
+  /**
+   * Returns the underlying data object.
+   * @returns Returns the underlying data object.
+   */
+  getTable?(): unknown;
 
   /**
    * Returns contents of the data container as a two-dimensional array.
@@ -123,7 +129,7 @@ export interface DataContainerInterface {
    * @returns A new array with each element being the result of the func callback.
    */
   mapIndex(
-    func: ({index: number}, dataContainer: DataContainerInterface) => any,
+    func: ({index}: {index: number}, dataContainer: DataContainerInterface) => any,
     options?: RangeOptions
   ): any[];
 

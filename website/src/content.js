@@ -23,11 +23,20 @@ export const SECTIONS = [
     description: 'A customizable geospatial toolbox to help make data-driven decisions.',
     icon: cdnUrl('icons/features.png')
   },
+  /*
   {
     id: 'studio',
     title: 'Take The Next Step',
     description: `Built on top of kepler.gl’s framework, Foursquare Studio is a free,
 powerful geospatial analytics and visualization tool, with new features and updates released every few weeks.`,
+    icon: fsqCdnUrl('fsqlogo.png'),
+    isDark: true
+  },*/
+  {
+    id: 'desktop',
+    title: 'Foursquare Spatial Desktop',
+    description:
+      'A native desktop app built on kepler.gl, DuckDB and SQLRooms for more power and fewer browser limitations.',
     icon: fsqCdnUrl('fsqlogo.png'),
     isDark: true
   },
@@ -71,7 +80,7 @@ export const HEADER_NAVS = [
     link: 'https://docs.kepler.gl/docs/user-guides'
   },
   {
-    text: 'Documentation',
+    text: 'Docs',
     link: 'https://docs.kepler.gl/docs/api-reference'
   },
   {
@@ -212,6 +221,20 @@ export const EXAMPLES = [
     description: 'Elevation contours of San Francisco mainland and Treasure Island/Yerba Island',
     image: cdnUrl('examples/sf-elevation.png'),
     url: '/demo/sfcontour'
+  },
+  {
+    title: 'Foursquare Places (PMTiles)',
+    description:
+      "Foursquare's Open Source Places dataset with 100+ million locations in a single PMTiles file",
+    image: fsqCdnUrl('pmtiles-fsq-places.png'),
+    url: '/demo/fsq_places'
+  },
+  {
+    title: 'Population (MVT Tiles)',
+    description:
+      'USA Population Mapbox Vector Tiles with total population per geometry and age statistics',
+    image: fsqCdnUrl('population-mvt.png'),
+    url: '/demo/mvt_population'
   },
   {
     title: 'Travel Times from Uber Movement',

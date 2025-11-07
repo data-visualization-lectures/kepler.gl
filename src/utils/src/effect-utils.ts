@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright contributors to the kepler.gl project
 
-import {arrayMove} from '@dnd-kit/sortable';
 import SunCalc from 'suncalc';
-import cloneDeep from 'lodash.clonedeep';
+import cloneDeep from 'lodash/cloneDeep';
 
 import {PostProcessEffect} from '@deck.gl/core/typed';
 
@@ -13,10 +12,13 @@ import {
   FILTER_TYPES,
   FILTER_VIEW_TYPES
 } from '@kepler.gl/constants';
-import {VisState} from '@kepler.gl/schemas';
+import {arrayMove} from '@kepler.gl/common-utils';
 import {MapState, Effect, EffectProps, EffectDescription} from '@kepler.gl/types';
 import {findById} from './utils';
 import {clamp} from './data-utils';
+
+// TODO isolate types - depends on @kepler.gl/schemas
+type VisState = any;
 
 export function computeDeckEffects({
   visState,
@@ -81,7 +83,8 @@ function isDaytime(lat, lon, timestamp) {
  */
 function updateEffect({visState, mapState, effect}) {
   if (effect.type === LIGHT_AND_SHADOW_EFFECT.type) {
-    let {timestamp, timeMode} = effect.parameters;
+    let {timestamp} = effect.parameters;
+    const {timeMode} = effect.parameters;
     const sunLight = effect.deckEffect.directionalLights[0];
 
     // set timestamp for shadow
@@ -130,7 +133,7 @@ export function validateEffectParameters(
   effectDescription.forEach(description => {
     const {defaultValue, name, type, min, max} = description;
 
-    if (!result.hasOwnProperty(name)) return;
+    if (!Object.prototype.hasOwnProperty.call(result, name)) return;
     const property = result[name];
 
     if (type === 'color' || type === 'array') {

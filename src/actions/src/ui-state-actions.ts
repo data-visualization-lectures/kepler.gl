@@ -3,8 +3,7 @@
 
 import {createAction} from '@reduxjs/toolkit';
 import {default as ActionTypes} from './action-types';
-import {Merge} from '@kepler.gl/types';
-import {ExportImage} from '@kepler.gl/constants';
+import {Merge, ExportImage} from '@kepler.gl/types';
 
 /** TOGGLE_SIDE_PANEL */
 export type ToggleSidePanelUpdaterAction = {
@@ -17,11 +16,9 @@ export type ToggleSidePanelUpdaterAction = {
  * @public
  */
 export const toggleSidePanel: (
-  id: string | null
-) => Merge<
-  ToggleSidePanelUpdaterAction,
-  {type: typeof ActionTypes.TOGGLE_SIDE_PANEL}
-> = createAction(ActionTypes.TOGGLE_SIDE_PANEL, (id: string | null) => ({payload: id}));
+  id: ToggleSidePanelUpdaterAction['payload']
+) => Merge<ToggleSidePanelUpdaterAction, {type: typeof ActionTypes.TOGGLE_SIDE_PANEL}> =
+  createAction(ActionTypes.TOGGLE_SIDE_PANEL, (id: string | null) => ({payload: id}));
 
 /** TOGGLE_MODAL */
 export type ToggleModalUpdaterAction = {
@@ -60,13 +57,11 @@ export type ShowExportDropdownUpdaterAction = {
  */
 export const showExportDropdown: (
   id: ShowExportDropdownUpdaterAction['payload']
-) => Merge<
-  ShowExportDropdownUpdaterAction,
-  {type: typeof ActionTypes.SHOW_EXPORT_DROPDOWN}
-> = createAction(
-  ActionTypes.SHOW_EXPORT_DROPDOWN,
-  (id: ShowExportDropdownUpdaterAction['payload']) => ({payload: id})
-);
+) => Merge<ShowExportDropdownUpdaterAction, {type: typeof ActionTypes.SHOW_EXPORT_DROPDOWN}> =
+  createAction(
+    ActionTypes.SHOW_EXPORT_DROPDOWN,
+    (id: ShowExportDropdownUpdaterAction['payload']) => ({payload: id})
+  );
 
 /**
  * Hide side panel header dropdown, activated by clicking the share link on top of the side panel
@@ -113,21 +108,19 @@ export type ToggleMapControlUpdaterAction = {
 export const toggleMapControl: (
   panelId: ToggleMapControlUpdaterAction['payload']['panelId'],
   index: ToggleMapControlUpdaterAction['payload']['index']
-) => Merge<
-  ToggleMapControlUpdaterAction,
-  {type: typeof ActionTypes.TOGGLE_MAP_CONTROL}
-> = createAction(
-  ActionTypes.TOGGLE_MAP_CONTROL,
-  (
-    panelId: ToggleMapControlUpdaterAction['payload']['panelId'],
-    index: ToggleMapControlUpdaterAction['payload']['index']
-  ) => ({
-    payload: {
-      panelId,
-      index
-    }
-  })
-);
+) => Merge<ToggleMapControlUpdaterAction, {type: typeof ActionTypes.TOGGLE_MAP_CONTROL}> =
+  createAction(
+    ActionTypes.TOGGLE_MAP_CONTROL,
+    (
+      panelId: ToggleMapControlUpdaterAction['payload']['panelId'],
+      index: ToggleMapControlUpdaterAction['payload']['index']
+    ) => ({
+      payload: {
+        panelId,
+        index
+      }
+    })
+  );
 
 /** SET_MAP_CONTROL_VISIBILITY */
 export type setMapControlVisibilityUpdaterAction = {
@@ -161,6 +154,30 @@ export const setMapControlVisibility: (
   })
 );
 
+/** SET_MAP_CONTROL_SETTINGS */
+export type setMapControlSettingsUpdaterAction = {
+  payload: {
+    panelId: string;
+    settings: Record<string, unknown>;
+  };
+};
+
+/**
+ * Set map control settings
+ * @memberof uiStateActions
+ * @param panelId - map control panel id, one of the keys of: [`DEFAULT_MAP_CONTROLS`](#default_map_controls)
+ * @public
+ */
+export const setMapControlSettings: (
+  panelId: string,
+  settings: Record<string, unknown>
+) => Merge<
+  setMapControlSettingsUpdaterAction,
+  {type: typeof ActionTypes.SET_MAP_CONTROL_SETTINGS}
+> = createAction(ActionTypes.SET_MAP_CONTROL_SETTINGS, (panelId, settings) => ({
+  payload: {panelId, settings}
+}));
+
 /** OPEN_DELETE_MODAL */
 export type OpenDeleteModalUpdaterAction = {
   payload: string;
@@ -173,13 +190,11 @@ export type OpenDeleteModalUpdaterAction = {
  */
 export const openDeleteModal: (
   datasetId: OpenDeleteModalUpdaterAction['payload']
-) => Merge<
-  OpenDeleteModalUpdaterAction,
-  {type: typeof ActionTypes.OPEN_DELETE_MODAL}
-> = createAction(
-  ActionTypes.OPEN_DELETE_MODAL,
-  (datasetId: OpenDeleteModalUpdaterAction['payload']) => ({payload: datasetId})
-);
+) => Merge<OpenDeleteModalUpdaterAction, {type: typeof ActionTypes.OPEN_DELETE_MODAL}> =
+  createAction(
+    ActionTypes.OPEN_DELETE_MODAL,
+    (datasetId: OpenDeleteModalUpdaterAction['payload']) => ({payload: datasetId})
+  );
 
 /** ADD_NOTIFICATION */
 export type AddNotificationUpdaterAction = {
@@ -192,9 +207,7 @@ export type AddNotificationUpdaterAction = {
  * @param notification - The `notification` object to be added or updated
  * @public
  */
-export const addNotification: (
-  notification: AddNotificationUpdaterAction['payload']
-) => Merge<
+export const addNotification: (notification: AddNotificationUpdaterAction['payload']) => Merge<
   AddNotificationUpdaterAction,
   {
     type: typeof ActionTypes.ADD_NOTIFICATION;
@@ -216,13 +229,11 @@ export type RemoveNotificationUpdaterAction = {
  */
 export const removeNotification: (
   id: RemoveNotificationUpdaterAction['payload']
-) => Merge<
-  RemoveNotificationUpdaterAction,
-  {type: typeof ActionTypes.REMOVE_NOTIFICATION}
-> = createAction(
-  ActionTypes.REMOVE_NOTIFICATION,
-  (id: RemoveNotificationUpdaterAction['payload']) => ({payload: id})
-);
+) => Merge<RemoveNotificationUpdaterAction, {type: typeof ActionTypes.REMOVE_NOTIFICATION}> =
+  createAction(
+    ActionTypes.REMOVE_NOTIFICATION,
+    (id: RemoveNotificationUpdaterAction['payload']) => ({payload: id})
+  );
 
 /** SET_EXPORT_IMAGE_SETTING */
 export type SetExportImageSettingUpdaterAction = {
@@ -254,10 +265,8 @@ export const startExportingImage: (options?: {
   resolution?: string;
   legend?: string;
   center?: boolean;
-}) => Merge<
-  SetExportImageSettingUpdaterAction,
-  {type: typeof ActionTypes.START_EXPORTING_IMAGE}
-> = createAction(ActionTypes.START_EXPORTING_IMAGE, (payload: any) => ({payload}));
+}) => Merge<SetExportImageSettingUpdaterAction, {type: typeof ActionTypes.START_EXPORTING_IMAGE}> =
+  createAction(ActionTypes.START_EXPORTING_IMAGE, (payload: any) => ({payload}));
 
 /** SET_EXPORT_IMAGE_DATA_URI */
 export type SetExportImageDataUriUpdaterAction = {
@@ -290,13 +299,11 @@ export type SetExportImageErrorUpdaterAction = {
  */
 export const setExportImageError: (
   error: SetExportImageErrorUpdaterAction['payload']
-) => Merge<
-  SetExportImageErrorUpdaterAction,
-  {type: typeof ActionTypes.SET_EXPORT_IMAGE_ERROR}
-> = createAction(
-  ActionTypes.SET_EXPORT_IMAGE_ERROR,
-  (error: SetExportImageErrorUpdaterAction['payload']) => ({payload: error})
-);
+) => Merge<SetExportImageErrorUpdaterAction, {type: typeof ActionTypes.SET_EXPORT_IMAGE_ERROR}> =
+  createAction(
+    ActionTypes.SET_EXPORT_IMAGE_ERROR,
+    (error: SetExportImageErrorUpdaterAction['payload']) => ({payload: error})
+  );
 
 /**
  * Delete cached export image
@@ -339,13 +346,11 @@ export type SetExportDataTypeUpdaterAction = {
  */
 export const setExportDataType: (
   dataType: SetExportDataTypeUpdaterAction['payload']
-) => Merge<
-  SetExportDataTypeUpdaterAction,
-  {type: typeof ActionTypes.SET_EXPORT_DATA_TYPE}
-> = createAction(
-  ActionTypes.SET_EXPORT_DATA_TYPE,
-  (dataType: SetExportDataTypeUpdaterAction['payload']) => ({payload: dataType})
-);
+) => Merge<SetExportDataTypeUpdaterAction, {type: typeof ActionTypes.SET_EXPORT_DATA_TYPE}> =
+  createAction(
+    ActionTypes.SET_EXPORT_DATA_TYPE,
+    (dataType: SetExportDataTypeUpdaterAction['payload']) => ({payload: dataType})
+  );
 
 /** SET_EXPORT_FILTERED */
 export type SetExportFilteredUpdaterAction = {
@@ -359,13 +364,11 @@ export type SetExportFilteredUpdaterAction = {
  */
 export const setExportFiltered: (
   exportFiltered: SetExportFilteredUpdaterAction['payload']
-) => Merge<
-  SetExportFilteredUpdaterAction,
-  {type: typeof ActionTypes.SET_EXPORT_FILTERED}
-> = createAction(
-  ActionTypes.SET_EXPORT_FILTERED,
-  (payload: SetExportFilteredUpdaterAction['payload']) => ({payload})
-);
+) => Merge<SetExportFilteredUpdaterAction, {type: typeof ActionTypes.SET_EXPORT_FILTERED}> =
+  createAction(
+    ActionTypes.SET_EXPORT_FILTERED,
+    (payload: SetExportFilteredUpdaterAction['payload']) => ({payload})
+  );
 
 /**
  * Whether to including data in map config, toggle between `true` or `false`
@@ -408,13 +411,11 @@ export type SetExportMapFormatUpdaterAction = {
  */
 export const setExportMapFormat: (
   mapFormat: SetExportMapFormatUpdaterAction['payload']
-) => Merge<
-  SetExportMapFormatUpdaterAction,
-  {type: typeof ActionTypes.SET_EXPORT_MAP_FORMAT}
-> = createAction(
-  ActionTypes.SET_EXPORT_MAP_FORMAT,
-  (payload: SetExportMapFormatUpdaterAction['payload']) => ({payload})
-);
+) => Merge<SetExportMapFormatUpdaterAction, {type: typeof ActionTypes.SET_EXPORT_MAP_FORMAT}> =
+  createAction(
+    ActionTypes.SET_EXPORT_MAP_FORMAT,
+    (payload: SetExportMapFormatUpdaterAction['payload']) => ({payload})
+  );
 
 /** SET_EXPORT_MAP_HTML_MODE */
 export type SetExportHTMLMapModeUpdaterAction = {
@@ -427,13 +428,11 @@ export type SetExportHTMLMapModeUpdaterAction = {
  */
 export const setExportHTMLMapMode: (
   mode: SetExportHTMLMapModeUpdaterAction['payload']
-) => Merge<
-  SetExportHTMLMapModeUpdaterAction,
-  {type: typeof ActionTypes.SET_EXPORT_MAP_HTML_MODE}
-> = createAction(
-  ActionTypes.SET_EXPORT_MAP_HTML_MODE,
-  (payload: SetExportHTMLMapModeUpdaterAction['payload']) => ({payload})
-);
+) => Merge<SetExportHTMLMapModeUpdaterAction, {type: typeof ActionTypes.SET_EXPORT_MAP_HTML_MODE}> =
+  createAction(
+    ActionTypes.SET_EXPORT_MAP_HTML_MODE,
+    (payload: SetExportHTMLMapModeUpdaterAction['payload']) => ({payload})
+  );
 
 /** SET_LOCALE */
 export type SetLocaleUpdaterAction = {
@@ -474,13 +473,11 @@ export type TogglePanelListViewAction = {
  */
 export const togglePanelListView: (
   payload: TogglePanelListViewAction['payload']
-) => Merge<
-  TogglePanelListViewAction,
-  {type: typeof ActionTypes.TOGGLE_PANEL_LIST_VIEW}
-> = createAction(
-  ActionTypes.TOGGLE_PANEL_LIST_VIEW,
-  (payload: TogglePanelListViewAction['payload']) => ({payload})
-);
+) => Merge<TogglePanelListViewAction, {type: typeof ActionTypes.TOGGLE_PANEL_LIST_VIEW}> =
+  createAction(
+    ActionTypes.TOGGLE_PANEL_LIST_VIEW,
+    (payload: TogglePanelListViewAction['payload']) => ({payload})
+  );
 
 /**
  * This declaration is needed to group actions in docs
@@ -493,7 +490,7 @@ export const togglePanelListView: (
  *
  * @public
  */
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-ignore
 const uiStateActions = null;
-/* eslint-enable no-unused-vars */
+/* eslint-enable @typescript-eslint/no-unused-vars */

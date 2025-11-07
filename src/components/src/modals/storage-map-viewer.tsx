@@ -55,7 +55,7 @@ const StyledAssetItem = styled.div.attrs({
     img {
       max-width: 100%;
     }
-    :hover {
+    &:hover {
       cursor: pointer;
       opacity: 1;
     }
@@ -88,7 +88,7 @@ const BackLink = styled.div`
   cursor: pointer;
   margin-bottom: 40px;
 
-  :hover {
+  &:hover {
     font-weight: 500;
   }
 
@@ -106,7 +106,7 @@ const StyledError = styled.div`
   margin-bottom: 16px;
 `;
 
-const getDuration = (last: number = 0) => moment.duration(new Date().valueOf() - last).humanize();
+const getDuration = (last = 0) => moment.duration(new Date().valueOf() - last).humanize();
 
 interface Asset {
   imageUrl?: string;

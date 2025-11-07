@@ -2,12 +2,12 @@
 // Copyright contributors to the kepler.gl project
 
 import {DataRow, SharedRowOptions} from './data-row';
-import {Field} from '@kepler.gl/types';
+import {ProtoDatasetField} from '@kepler.gl/types';
 import {DataContainerInterface, RangeOptions} from './data-container-interface';
 
 type RowDataContainerInput = {
   rows: any[][];
-  fields?: Field[];
+  fields?: ProtoDatasetField[];
 };
 
 /**
@@ -117,7 +117,7 @@ export class RowDataContainer implements DataContainerInterface {
   }
 
   mapIndex<T>(
-    func: ({index: number}, dc: DataContainerInterface) => T,
+    func: ({index}: {index: number}, dc: DataContainerInterface) => T,
     options: RangeOptions = {}
   ): T[] {
     const {start = 0, end = this.numRows()} = options;

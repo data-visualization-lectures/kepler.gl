@@ -3,13 +3,17 @@
 
 import React from 'react';
 import styled from 'styled-components';
+
 import {
   withState,
   MapControlFactory,
   EffectControlFactory,
   EffectManagerFactory
 } from '@kepler.gl/components';
-import {SampleMapPanel} from '../components/map-control/map-control';
+import {AiAssistantControlFactory} from '@kepler.gl/ai-assistant';
+
+import {BannerMapPanel, SampleMapPanel} from '../components/map-control/map-control';
+import SqlPanelControlFactory from '../components/map-control/sql-panel-control';
 
 const StyledMapControlPanel = styled.div`
   position: relative;
@@ -44,7 +48,7 @@ const StyledMapControlOverlay = styled.div`
   margin-top: ${props => (props.rightPanelVisible ? props.theme.rightPanelMarginTop : 0)}px;
   margin-right: ${props => (props.rightPanelVisible ? props.theme.rightPanelMarginRight : 0)}px;
   ${props => (props.fullHeight ? 'height' : 'max-height')}: calc(100% - ${props =>
-  props.theme.rightPanelMarginTop + props.theme.bottomWidgetPaddingBottom}px);
+    props.theme.rightPanelMarginTop + props.theme.bottomWidgetPaddingBottom}px);
 
   .map-control {
     ${props => (props.rightPanelVisible ? 'padding-top: 0px;' : '')}
@@ -54,17 +58,31 @@ const StyledMapControlOverlay = styled.div`
 CustomMapControlFactory.deps = [
   EffectControlFactory,
   EffectManagerFactory,
+  SqlPanelControlFactory,
+  AiAssistantControlFactory,
   ...MapControlFactory.deps
 ];
-function CustomMapControlFactory(EffectControl, EffectManager, ...deps) {
+function CustomMapControlFactory(
+  EffectControl,
+  EffectManager,
+  SqlPanelControl,
+  AiAssistantControl,
+  ...deps
+) {
   const MapControl = MapControlFactory(...deps);
-  const actionComponents = [...(MapControl.defaultProps?.actionComponents ?? []), EffectControl];
+  const actionComponents = [
+    ...(MapControl.defaultActionComponents ?? []),
+    EffectControl,
+    SqlPanelControl,
+    AiAssistantControl
+  ];
 
   const CustomMapControl = props => {
     const showEffects = Boolean(props.mapControls?.effect?.active);
     return (
       <StyledMapControlOverlay top={props.top} rightPanelVisible={showEffects}>
         <StyledMapControlPanel>
+          {<BannerMapPanel {...props} />}
           {!props.isExport && props.currentSample ? <SampleMapPanel {...props} /> : null}
           <MapControl {...props} top={0} actionComponents={actionComponents} />
         </StyledMapControlPanel>

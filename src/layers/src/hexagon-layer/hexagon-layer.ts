@@ -6,8 +6,8 @@ import AggregationLayer, {AggregationLayerConfig} from '../aggregation-layer';
 import {EnhancedHexagonLayer} from '@kepler.gl/deckgl-layers';
 import {hexagonToPolygonGeo} from './hexagon-utils';
 import HexagonLayerIcon from './hexagon-layer-icon';
-import {clamp} from '@kepler.gl/utils';
 import {
+  ColorRange,
   VisConfigBoolean,
   VisConfigColorRange,
   VisConfigNumber,
@@ -15,7 +15,7 @@ import {
   VisConfigSelection,
   Merge
 } from '@kepler.gl/types';
-import {AggregationTypes, ColorRange} from '@kepler.gl/constants';
+import {AggregationTypes} from '@kepler.gl/constants';
 
 export type HexagonLayerVisConfigSettings = {
   opacity: VisConfigNumber;
@@ -62,6 +62,7 @@ export const hexagonVisConfigs: {
   elevationPercentile: 'elevationPercentile';
   elevationScale: 'elevationScale';
   enableElevationZoomFactor: 'enableElevationZoomFactor';
+  fixedHeight: 'fixedHeight';
   colorAggregation: 'colorAggregation';
   sizeAggregation: 'sizeAggregation';
   enable3d: 'enable3d';
@@ -76,6 +77,7 @@ export const hexagonVisConfigs: {
   elevationPercentile: 'elevationPercentile',
   elevationScale: 'elevationScale',
   enableElevationZoomFactor: 'enableElevationZoomFactor',
+  fixedHeight: 'fixedHeight',
   colorAggregation: 'colorAggregation',
   sizeAggregation: 'sizeAggregation',
   enable3d: 'enable3d'
@@ -132,7 +134,7 @@ export default class HexagonLayer extends AggregationLayer {
                 hexagonToPolygonGeo(hoveredObject, {}, radius * visConfig.coverage, mapState)
               ].filter(d => d),
               getLineColor: this.config.highlightColor,
-              lineWidthScale: clamp([1, 100], radius * 0.1 * zoomFactor)
+              lineWidthScale: 8 * zoomFactor
             })
           ]
         : [])

@@ -9,7 +9,9 @@ import {UpdateTableColorTypes} from './types';
 import {RGBColor} from '@kepler.gl/types';
 import {VisStateActions, ActionHandler} from '@kepler.gl/actions';
 
-function nop(_) {}
+function nop() {
+  return;
+}
 
 const DatasetTagWrapper = styled.div`
   display: flex;
@@ -17,10 +19,10 @@ const DatasetTagWrapper = styled.div`
   font-size: 11px;
   letter-spacing: 0.2px;
   overflow: auto;
-
+  display: flex;
+  align-items: center;
   .dataset-color {
     flex-shrink: 0;
-    margin-top: 3px;
   }
 
   .dataset-name {

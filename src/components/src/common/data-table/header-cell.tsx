@@ -91,6 +91,7 @@ type HeaderCellProps = {
   props: DataTableProps;
   toggleMoreOptions: (moreOptionsColumn: string) => void;
   moreOptionsColumn: null | string;
+  style: CSSProperties;
 };
 
 const HeaderCellFactory = (FieldToken: React.FC<FieldTokenProps>) => {
@@ -119,16 +120,16 @@ const HeaderCellFactory = (FieldToken: React.FC<FieldTokenProps>) => {
     const firstCell = columnIndex === 0;
     const isFormatted = Boolean(colMeta[column]?.displayFormat);
     const formatLabels = isFormatted ? getFieldFormatLabels(colMeta[column].type) : [];
-    const onSortTable = useCallback(() => sortTableColumn(column), [sortTableColumn, column]);
-    const onToggleOptionMenu = useCallback(() => toggleMoreOptions(column), [
-      toggleMoreOptions,
-      column
-    ]);
+    const onSortTable = useCallback(() => sortTableColumn?.(column), [sortTableColumn, column]);
+    const onToggleOptionMenu = useCallback(
+      () => toggleMoreOptions(column),
+      [toggleMoreOptions, column]
+    );
     const onPin = useCallback(() => pinTableColumn(column), [pinTableColumn, column]);
     const onCopy = useCallback(() => copyTableColumn(column), [copyTableColumn, column]);
     const onSetDisplayFormat = useCallback(
       displayFormat => {
-        setColumnDisplayFormat({[column]: displayFormat.format});
+        setColumnDisplayFormat?.({[column]: displayFormat.format});
       },
       [column, setColumnDisplayFormat]
     );
@@ -195,10 +196,12 @@ const HeaderCellFactory = (FieldToken: React.FC<FieldTokenProps>) => {
                 column={column}
                 colMeta={colMeta}
                 toggleMoreOptions={toggleMoreOptions}
-                sortTableColumn={mode => sortTableColumn(column, mode)}
+                sortTableColumn={
+                  sortTableColumn ? mode => sortTableColumn(column, mode) : undefined
+                }
                 pinTableColumn={onPin}
                 copyTableColumn={onCopy}
-                setDisplayFormat={onSetDisplayFormat}
+                setDisplayFormat={setColumnDisplayFormat ? onSetDisplayFormat : undefined}
               />
             </section>
           </>
