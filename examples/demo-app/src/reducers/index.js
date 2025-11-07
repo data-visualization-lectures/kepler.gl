@@ -90,6 +90,11 @@ const {DEFAULT_EXPORT_MAP} = uiStateUpdaters;
 const demoReducer = combineReducers({
   // mount keplerGl reducer
   keplerGl: keplerGlReducer.initialState({
+    mapState: {
+      latitude: 35.681236,
+      longitude: 139.767125,
+      zoom: 10
+    },
     // In order to provide single file export functionality
     // we are going to set the mapbox access token to be used
     // in the exported file
