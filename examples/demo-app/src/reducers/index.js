@@ -95,10 +95,11 @@ const demoReducer = combineReducers({
       longitude: 139.767125,
       zoom: 10
     },
-    // In order to provide single file export functionality
-    // we are going to set the mapbox access token to be used
-    // in the exported file
     uiState: {
+      locale: 'ja',
+      // In order to provide single file export functionality
+      // we are going to set the mapbox access token to be used
+      // in the exported file
       exportMap: {
         ...DEFAULT_EXPORT_MAP,
         [EXPORT_MAP_FORMATS.HTML]: {
