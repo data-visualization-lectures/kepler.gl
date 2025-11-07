@@ -22,6 +22,19 @@ const en = {
 
 export const messages = {
   en,
+  ja: {
+    'modal.loadData.remote': 'URL で地図を読み込む',
+    'sampleMapsTab.noData': 'データがありませんか？',
+    'sampleMapsTab.trySampleData': 'サンプルデータを試す',
+    'sampleDataViewer.rowCount': ' {rowCount} 行',
+    'loadRemoteMap.description': 'カスタム URL で地図を読み込みます',
+    'loadRemoteMap.message':
+      '使用可能な形式: CSV / JSON / kepler.gl設定JSON。URLに拡張子を含めてください。',
+    'loadRemoteMap.examples': '使用例:',
+    'loadRemoteMap.cors': '* アクセスには CORS 設定が必要です。詳しくは',
+    'loadRemoteMap.clickHere': 'こちら',
+    'loadRemoteMap.fetch': '取得'
+  },
   fi: {
     'modal.loadData.remote': 'Lataa kartta URL-osoitteen avulla',
     'sampleMapsTab.noData': 'Ei aineistoja?',

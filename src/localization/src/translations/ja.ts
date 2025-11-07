@@ -70,8 +70,8 @@ export default {
     required: '必須*',
     radius: '半径',
     color: '色',
-    fillColor: '塗りつぶしの色',
-    outline: '輪郭線',
+    fillColor: '塗りつぶし色（fill）',
+    outline: '輪郭線の色（stroke）',
     weight: '重み',
     propertyBasedOn: '{property}の基準',
     coverage: 'カバー率',
@@ -344,7 +344,10 @@ export default {
     },
     loadData: {
       upload: 'ファイルをロード',
-      storage: 'ストレージからロード'
+      tileset: 'タイルセット',
+      storage: 'ストレージからロード',
+      sample: 'サンプルデータを試す',
+      remote: 'URL で地図を読み込む'
     },
     tripInfo: {
       title: '移動アニメーションを有効にする方法',
