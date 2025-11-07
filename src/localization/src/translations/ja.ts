@@ -60,7 +60,7 @@ export default {
   },
   sidebar: {
     panels: {
-      layer: 'レイヤ',
+      layer: 'レイヤー',
       filter: 'フィルター',
       interaction: 'インタラクション',
       basemap: 'ベースマップ'
