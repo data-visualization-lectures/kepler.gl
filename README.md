@@ -35,15 +35,6 @@
 - `NODE_OPTIONS=--openssl-legacy-provider yarn build`
 - 成果物 `examples/demo-app/dist/` をブラウザでホストして動作確認
 
-## 5. Netlify への手動デプロイ
-- `npm install -g netlify-cli`
-- `netlify login`
-- `netlify init` でサイト作成（または既存サイトにリンク）
-- Netlify 管理画面で Environment variables を設定（`MAPBOX_ACCESS_TOKEN` ほか）
-- `examples/demo-app` で `netlify deploy --dir=dist`（プレビュー）
-- 問題なければ `netlify deploy --dir=dist --prod`
-
-## 6. 備考
+## 5. 備考
 - Node 18 + webpack 4 の組合せで OpenSSL 3 互換問題が生じるため、ビルド系コマンドには `NODE_OPTIONS=--openssl-legacy-provider` を明示。
 - GPU 関連のネイティブ依存で `node-gyp` がビルドツールや Python を要求することがある。必要に応じて Xcode Command Line Tools と Python3 を用意。
-- Netlify の自動ビルドは使用せず、ローカルビルド済み `dist` をアップロードする運用。
