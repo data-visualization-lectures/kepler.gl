@@ -94,9 +94,9 @@ const demoReducer = combineReducers({
   // mount keplerGl reducer
   keplerGl: keplerGlReducer.initialState({
     mapState: {
-      latitude: 35.681236,
-      longitude: 139.767125,
-      zoom: 10
+      latitude: 37.67,
+      longitude: 133.76,
+      zoom: 5
     },
     uiState: {
       locale: 'ja',
