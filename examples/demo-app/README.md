@@ -23,6 +23,8 @@ Then, go to the `examples/demo-app` directory and install the dependencies using
 yarn install
 ```
 
+> **Note:** This project pins `yarn@4.4.0` via the `packageManager` field. If you cannot run `corepack enable` (common on locked-down environments), invoke every yarn command through Corepack directly, e.g. `corepack yarn install`.
+
 #### 2. Environment Variables
 Create a `.env` file at the root directory by copying from `.env.template`:
 
@@ -47,5 +49,16 @@ FOURSQUARE_USER_MAPS_URL=<your_foursquare_user_map_url>
 ```sh
 yarn start:local
 ```
+
+#### 4. Build the static bundle
+
+Run the build from the `examples/demo-app` directory. When OpenSSL legacy providers are required (Node 18 on macOS often needs it), prefix the command as follows:
+
+```sh
+cd examples/demo-app
+NODE_OPTIONS=--openssl-legacy-provider corepack yarn build
+```
+
+The build artifacts will be emitted to `examples/demo-app/dist`. Serve that directory as the web root (or adjust the asset paths accordingly) when previewing locally.
 
 [yarn-install]: https://yarnpkg.com/getting-started/install
