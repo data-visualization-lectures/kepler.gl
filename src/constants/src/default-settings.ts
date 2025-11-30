@@ -108,7 +108,7 @@ export const KEPLER_GL_NAME = 'kepler.gl';
 // while developing VERSION is not defined, we capture the exception and return
 // an empty string which will allow us to retrieve the latest umd version
 export const KEPLER_GL_VERSION = '__PACKAGE_VERSION__';
-export const KEPLER_GL_WEBSITE = 'https://kepler.gl/';
+export const KEPLER_GL_WEBSITE = 'https://kepler-gl.dataviz.jp/';
 
 export const DIMENSIONS = {
   sidePanel: {
